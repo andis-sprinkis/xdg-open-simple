@@ -79,10 +79,10 @@ SEE ALSO
     xdg-open(1), xdg-mime(1), MIME applications associations specification
 
 EXAMPLES
-    xdg-open-generic \"http://www.freedesktop.org/\"
+    xdg-open \"http://www.freedesktop.org/\"
         Opens the freedesktop.org website in the user's default browser.
 
-    xdg-open-generic \"/tmp/foobar.png\"
+    xdg-open \"/tmp/foobar.png\"
         Opens the PNG image file /tmp/foobar.png in the user's default image viewing application.
 "
 
