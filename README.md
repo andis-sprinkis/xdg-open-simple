@@ -7,7 +7,7 @@ For use in the non-desktop-environment setups, like the `i3`, `sway`, `dwm` etc.
 ## Current targets
 
 -   [x] `xdg-open`
--   [ ] `xdg-mime`
+-   [ ] `xdg-mime` (work in progress)
 
 ## Resources
 
