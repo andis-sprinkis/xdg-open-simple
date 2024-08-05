@@ -98,7 +98,7 @@ while getopts :hmv name; do
   case $name in
     h) echo "$help_info"; exit
       ;;
-    v) echo "xdg-open-generic 0.0.0"; exit
+    v) echo "xdg-open-simple 0.0.0"; exit
        ;;
     ?) exit_err_cmd_syntax
        ;;
