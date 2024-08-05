@@ -47,16 +47,13 @@ help_info="NAME
     ${script} - opens a file or URI in the registered default application.
 
 SYNOPSIS
-    ${script} { file | URI } [-v] [-h]
+    ${script} { file | URI } [-h]
 
 DESCRIPTION
     Utility script to open a file or URI in the registered default application.
 
     { file | URI }
         The absolute path of the file, or the URI to open.
-
-    -v
-        Prints version information.
 
     -h
         Prints this message.
@@ -94,12 +91,10 @@ exit_err_cmd_syntax() {
   exit "1"
 }
 
-while getopts :hmv name; do
+while getopts :h name; do
   case $name in
     h) echo "$help_info"; exit
       ;;
-    v) echo "xdg-open-simple 0.0.0"; exit
-       ;;
     ?) exit_err_cmd_syntax
        ;;
   esac
