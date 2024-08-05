@@ -1,0 +1,307 @@
+#!/usr/bin/env sh
+#   xdg-utils-generic xdg-open
+#
+#   Utility script to open a file or URI in the user's preferred application.
+#
+#   This script is a fork of the original xdg-open script from xdg-utils.
+#
+#   Notable properties of this fork are:
+#   - A lot more concise - ~75% less LOC.
+#   - Only uses the .desktop files and mimeapps.list.
+#   - Doesn't forward paths to any other, DE-specific file openers.
+#   - Doesn't forward paths without a known handler to a web browser.
+#   - Handles relative file paths.
+#   - The applicable error exit codes are retained from the original xdg-open script for compatibility.
+#   - Based on xdg-open version 1.2.1.
+#
+#   The original xdg-open copyright:
+#
+#   Copyright 2009-2010, Fathi Boudra <fabo@freedesktop.org>
+#   Copyright 2009-2016, Rex Dieter <rdieter@fedoraproject.org>
+#   Copyright 2006, Kevin Krammer <kevin.krammer@gmx.at>
+#   Copyright 2006, Jeremy White <jwhite@codeweavers.com>
+#
+#   LICENSE:
+#
+#   Permission is hereby granted, free of charge, to any person obtaining a
+#   copy of this software and associated documentation files (the "Software"),
+#   to deal in the Software without restriction, including without limitation
+#   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#   and/or sell copies of the Software, and to permit persons to whom the
+#   Software is furnished to do so, subject to the following conditions:
+#
+#   The above copyright notice and this permission notice shall be included
+#   in all copies or substantial portions of the Software.
+#
+#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+#   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+#   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+#   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+#   OTHER DEALINGS IN THE SOFTWARE.
+
+script="$(basename "$0")"
+
+help_info="NAME
+    ${script} - opens a file or URI in the registered default application.
+
+SYNOPSIS
+    ${script} { file | URI } [-v] [-h]
+
+DESCRIPTION
+    Utility script to open a file or URI in the registered default application.
+
+    { file | URI }
+        The absolute path of the file, or the URI to open.
+
+    -v
+        Prints version information.
+
+    -h
+        Prints this message.
+
+EXIT CODES
+    An exit code of 0 indicates success, while a non-zero exit code indicates failure. The following failure codes can be returned:
+
+    1
+        Error in command line syntax.
+
+    2
+        One of the files passed on the command line did not exist.
+
+    3
+        A required tool could not be found.
+
+    4
+        The action failed.
+
+    In case of success the process launched from the .desktop file will not be forked off and therefore may result in xdg-open-generic running for a very long time. This behaviour intentionally differs from most desktop specific openers to allow terminal based applications to run using the same terminal xdg-open was called from.
+
+SEE ALSO
+    xdg-open(1), xdg-mime(1), MIME applications associations specification
+
+EXAMPLES
+    xdg-open-generic \"http://www.freedesktop.org/\"
+        Opens the freedesktop.org website in the user's default browser.
+
+    xdg-open-generic \"/tmp/foobar.png\"
+        Opens the PNG image file /tmp/foobar.png in the user's default image viewing application.
+"
+
+exit_err_cmd_syntax() {
+  echo "$help_info" 1>&2
+  exit "1"
+}
+
+while getopts :hmv name; do
+  case $name in
+    h) echo "$help_info"; exit
+      ;;
+    v) echo "xdg-open-generic 0.0.0"; exit
+       ;;
+    ?) exit_err_cmd_syntax
+       ;;
+  esac
+done
+
+[ "$1" = "" ] && exit_err_cmd_syntax
+[ "$#" -gt "1" ] && exit_err_cmd_syntax
+
+url="$1"
+
+# The first_word, last_word functions handle backslashes, but not quote marks.
+
+first_word() {
+  # shellcheck disable=SC2162
+  read first rest; echo "$first"
+}
+
+last_word() {
+  # shellcheck disable=SC2162
+  read first rest; echo "$rest"
+}
+
+# Get the value of a key in a desktop file's Desktop Entry group.
+# Example: use get_key foo.desktop Exec to get the values of the Exec= key for the Desktop Entry group.
+get_key() {
+  file="$1" key="$2" desktop_entry=""
+
+  # No backslash handling here, first_word and last_word do that.
+  IFS_="$IFS" IFS=""
+  while read -r line; do
+    case "$line" in
+      "[Desktop Entry]")
+        desktop_entry="y"
+      ;;
+      # Reset match flag for other groups
+      "["*)
+        desktop_entry=""
+      ;;
+      "${key}="*)
+        # Only match Desktop Entry group
+        [ "$desktop_entry" ] && echo "$line" | cut -d= -f 2-
+    esac
+  done < "$file"
+  IFS="$IFS_"
+}
+
+# If argument is a file URL, convert it to a percent-decoded path.
+# If not, leave it as it is.
+file_url_to_path() {
+  file="$1"
+
+  hostname="$(uname -n)"
+
+  echo "$file" | grep -q '^file://' && {
+    file=${file#file://localhost}
+    file=${file#file://"$hostname"}
+    file=${file#file://}
+
+    ! echo "$file" | grep -q '^/' && {
+      echo "$file"
+      return
+    }
+
+    file=${file%%#*}
+    file=${file%%\?*}
+
+    printf="printf"
+    [ -x "/usr/bin/printf" ] && printf="/usr/bin/printf"
+    file=$($printf "$(echo "$file" | sed -e 's@%\([a-f0-9A-F]\{2\}\)@\\x\1@g')")
+  }
+
+  file="$(readlink -f "$file")"
+
+  echo "$file"
+}
+
+# Recursively search .desktop file.
+# $1: Application, $2: Directory, $3: Target file, $4: Target URL
+search_desktop_file() {
+  default="$1"
+  dir="$2"
+  target="$3"
+  target_uri="$4"
+
+  file=""
+
+  # Look for: vendor/app.desktop, vendor-app.desktop
+  fpath_slash="${dir}/${default}"
+  fpath_dash="${dir}/$(echo "$default" | sed -e 's|-|/|')"
+
+  if [ -r "$fpath_slash" ]; then
+    file="$fpath_slash"
+  elif [ -r "$fpath_dash" ]; then
+    file="$fpath_dash"
+  fi
+
+  [ "$file" ] && {
+    command="$(get_key "$file" "Exec" | first_word)"
+
+    command -v "$command" > "/dev/null" && {
+      icon="$(get_key "$file" "Icon")"
+
+      # FIXME: Actually LC_MESSAGES should be used as described in
+      # http://standards.freedesktop.org/desktop-entry-spec/latest/ar01s04.html
+
+      localised_name="$(get_key "$file" "Name")"
+
+      # shellcheck disable=SC2046
+      set -- $(get_key "$file" "Exec" | last_word)
+
+      # We need to replace any occurrence of "%f", "%F" and the like by the target file.
+      # We examine each argument and append the modified argument to the end then shift.
+
+      args="$#"
+      replaced="0"
+      while [ $args -gt 0 ]; do
+        case $1 in
+          %[c])
+            replaced="1" arg="$localised_name"
+            shift
+            set -- "$@" "$arg"
+            ;;
+          %[fF])
+            # If there is only a target_url - return - this application can't handle it.
+            [ "$target" ] || return
+            replaced="1" arg="$target"
+            shift
+            set -- "$@" "$arg"
+            ;;
+          %[uU])
+            replaced="1"
+            # When an URI is requested use it, otherwise fall back to the filepath.
+            arg="${target_uri:-$target}"
+            shift
+            set -- "$@" "$arg"
+            ;;
+          %[i])
+            replaced="1"
+            shift
+            set -- "$@" "--icon" "$icon"
+            ;;
+          *)
+            arg="$1"
+            shift
+            set -- "$@" "$arg"
+            ;;
+        esac
+
+        args=$(( args - 1 ))
+      done
+
+      [ "$replaced" = "1" ] || set -- "$@" "${target:-$target_uri}"
+
+      env "$command" "$@"
+
+      exit "0"
+    }
+  }
+
+  for d in "${dir}/"*/; do
+    [ -d "$d" ] && search_desktop_file "$default" "$d" "$target" "$target_uri"
+  done
+}
+
+# $1: File (or empty), $2: MIME type, $3: URL (optional)
+open_xdg_mime() {
+  filetype="$2"
+  default="$(xdg-mime query default "$filetype")"
+
+  [ "$default" ] && {
+    search_dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
+
+    IFS_="$IFS" IFS=:
+    for dir in $search_dirs ; do
+      IFS="$IFS_"
+      search_desktop_file "$default" "${dir}/applications/" "$1" "$3"
+    done
+  }
+}
+
+# Is a file URL or doesn't have a URL scheme.
+{
+  echo "$url" | grep -q '^file://' || ! echo "$url" | LC_ALL="C" grep -Eq '^[[:alpha:]][[:alpha:][:digit:]+\.\-]*:' "$url"
+} && {
+  file="$(file_url_to_path "$url")"
+
+  [ ! -e "$file" ] && exit "2"
+  [ ! -r "$file" ] && exit "5"
+
+  filetype="$(xdg-mime query filetype "$file" | sed "s/;.*//")"
+
+  # Passing a path as a URL is okay too, see desktop file specification for '%u'.
+  # https://specifications.freedesktop.org/desktop-entry-spec/latest/exec-variables.html
+  open_xdg_mime "$file" "$filetype" "$url"
+}
+
+# Has a URL scheme.
+scheme="$(echo "$1" | LC_ALL=C sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
+
+[ "$scheme" ] && {
+  filetype="x-scheme-handler/$scheme"
+  open_xdg_mime "" "$filetype" "$url"
+}
+
+exit "3"
