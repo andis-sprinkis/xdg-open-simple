@@ -277,7 +277,7 @@ open_xdg_mime() {
 
 # Is a file URL or doesn't have a URL scheme.
 {
-  echo "$url" | grep -q '^file://' || ! echo "$url" | LC_ALL="C" grep -Eq '^[[:alpha:]][[:alpha:][:digit:]+\.\-]*:' "$url"
+  echo "$url" | grep -q '^file://' || ! echo "$url" | LC_ALL="C" grep -Eq '^[[:alpha:]][[:alpha:][:digit:]+\.\-]*:'
 } && {
   file="$(file_url_to_path "$url")"
 
