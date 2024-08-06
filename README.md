@@ -1,14 +1,20 @@
-# xdg-utils-simple
+# xdg-open-simple
 
-An attempt at more concise drop-in replacements of some of the `xdg-utils` utility scripts, by forking and refactoring them.
+Utility script to open a file or URI in the user's preferred application.
 
-For use in the non-desktop-environment setups, like the `i3`, `sway`, `dwm` etc. window manager sessions.
+This script is a fork of the original `xdg-open` and `xdg-mime` scripts from `xdg-utils` v1.2.1.
 
-## Current targets
+Notable properties of this fork are:
 
--   [x] `xdg-open`
--   [ ] `xdg-mime` (work in progress)
+-   Doesn't itself forward paths without a known handler to a web browser.
+-   Doesn't itself forward paths to any other or DE-specific file openers.
+-   Relies solely on the `.desktop` files and `mimeapps.list` information for the file type and URI scheme handling.
+-   Handles relative file paths.
+-   A lot more concise than the original `xdg-open`.
+-   No dependency on `xdg-mime` or other scripts from `xdg-utils`.
+-   The applicable error exit codes are retained from the original `xdg-open`.
 
 ## Resources
 
 -   [xdg / xdg-utils · GitLab](https://gitlab.freedesktop.org/xdg/xdg-utils)
+-   [Desktop Entry Specification](https://specifications.freedesktop.org/desktop-entry-spec/latest/)
