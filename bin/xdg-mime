@@ -1,3 +1,902 @@
-#!/usr/bin/env sh
+#!/bin/sh
+#---------------------------------------------
+#   xdg-mime
+#
+#   Utility script to manipulate MIME related information
+#   on XDG compliant systems.
+#
+#   Refer to the usage() function below for usage.
+#
+#   Copyright 2009-2010, Fathi Boudra <fabo@freedesktop.org>
+#   Copyright 2009-2010, Rex Dieter <rdieter@fedoraproject.org>
+#   Copyright 2006, Kevin Krammer <kevin.krammer@gmx.at>
+#   Copyright 2006, Jeremy White <jwhite@codeweavers.com>
+#
+#   LICENSE:
+#
+#   Permission is hereby granted, free of charge, to any person obtaining a
+#   copy of this software and associated documentation files (the "Software"),
+#   to deal in the Software without restriction, including without limitation
+#   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#   and/or sell copies of the Software, and to permit persons to whom the
+#   Software is furnished to do so, subject to the following conditions:
+#
+#   The above copyright notice and this permission notice shall be included
+#   in all copies or substantial portions of the Software.
+#
+#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+#   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+#   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+#   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+#   OTHER DEALINGS IN THE SOFTWARE.
+#
+#---------------------------------------------
 
-# TODO
+manualpage() {
+cat << '_MANUALPAGE'
+Name
+
+   xdg-mime -- command line tool for querying information about
+   file type handling and adding descriptions for new file types
+
+Synopsis
+
+   xdg-mime query { filetype FILE | default mimetype }
+
+   xdg-mime default application mimetype(s)
+
+   xdg-mime install [--mode mode] [--novendor] mimetypes-file
+
+   xdg-mime uninstall [--mode mode] mimetypes-file
+
+   xdg-mime { --help | --manual | --version }
+
+Description
+
+   The xdg-mime program can be used to query information about
+   file types and to add descriptions for new file types.
+
+Commands
+
+   query file
+      Returns the file type of FILE in the form of a MIME
+      type.
+
+      Please note that FILE names starting with a - will be
+      rejected, this can be mitigated:
+
+      + Pass absolute paths, i.e. by using realpath as a
+      preprocessor.
+      + Prefix known relative filepaths with a "./". For
+      example using sed -E 's|^[^/]|./\0|' as a
+      preprocessor.
+
+      The query file option is for use inside a desktop
+      session only. It is not recommended to use xdg-mime
+      query file as root.
+
+   query default
+      Returns the default application that the desktop
+      environment uses for opening files of type mimetype. The
+      default application is identified by its *.desktop file.
+
+      The value returned by this command may or may not match
+      the application launched by xdg-open as xdg-open hands
+      over to desktop specific openers most of the time which
+      may implement their own logic.
+
+      The query default option is for use inside a desktop
+      session only. It is not recommended to use xdg-mime
+      query default as root.
+
+   install
+      Adds the file type descriptions provided in
+      mimetypes-file to the desktop environment.
+      mimetypes-file must be a XML file that follows the
+      freedesktop.org Shared MIME-info Database specification
+      and that has a mime-info element as its document root.
+      For each new file type one or more icons with name
+      type-subtype must be installed with the
+      xdg-icon-resource command in the mimetypes context. For
+      example the filetype
+      application/vnd.oasis.opendocument.text requires an icon
+      named application-vnd.oasis.opendocument.text to be
+      installed (unless the file type recommends another icon
+      name).
+
+   uninstall
+      Removes the file type descriptions provided in
+      mimetypes-file and previously added with xdg-mime
+      install from the desktop environment. mimetypes-file
+      must be a XML file that follows the freedesktop.org
+      Shared MIME-info Database specification and that has a
+      mime-info element as its document root.
+
+Options
+
+   --mode mode
+      mode can be user or system. In user mode the file is
+      (un)installed for the current user only. In system mode
+      the file is (un)installed for all users on the system.
+      Usually only root is allowed to install in system mode.
+
+      The default is to use system mode when called by root
+      and to use user mode when called by a non-root user.
+
+   --novendor
+      Normally, xdg-mime checks to ensure that the
+      mimetypes-file to be installed has a proper vendor
+      prefix. This option can be used to disable that check.
+
+      A vendor prefix consists of alpha characters ([a-zA-Z])
+      and is terminated with a dash ("-"). Companies and
+      organizations are encouraged to use a word or phrase,
+      preferably the organizations name, for which they hold a
+      trademark as their vendor prefix. The purpose of the
+      vendor prefix is to prevent name conflicts.
+
+   --help
+      Show command synopsis.
+
+   --manual
+      Show this manual page.
+
+   --version
+      Show the xdg-utils version information.
+
+Environment Variables
+
+   xdg-mime honours the following environment variables:
+
+   XDG_UTILS_DEBUG_LEVEL
+      Setting this environment variable to a non-zero
+      numerical value makes xdg-mime do more verbose reporting
+      on stderr. Setting a higher value increases the
+      verbosity.
+
+   XDG_UTILS_INSTALL_MODE
+      This environment variable can be used by the user or
+      administrator to override the installation mode. Valid
+      values are user and system.
+
+Exit Codes
+
+   An exit code of 0 indicates success while a non-zero exit code
+   indicates failure. The following failure codes can be returned:
+
+   1
+      Error in command line syntax.
+
+   2
+      One of the files passed on the command line did not
+      exist.
+
+   3
+      A required tool could not be found.
+
+   4
+      The action failed.
+
+   5
+      No permission to read one of the files passed on the
+      command line.
+
+See Also
+
+   xdg-icon-resource(1), xdg-desktop-menu(1), Shared MIME database
+   specification, MIME applications associations specification
+
+Examples
+
+xdg-mime query filetype /tmp/foobar.png
+
+   Prints the MIME type of the file /tmp/foobar.png, in this case
+   image/png
+
+xdg-mime query default image/png
+
+   Prints the .desktop filename of the application which is
+   registered to open PNG files.
+
+xdg-mime install shinythings-shiny.xml
+
+   Adds a file type description for "shiny"-files. "shinythings-"
+   is used as the vendor prefix. The file type description could
+   look as follows.
+shinythings-shiny.xml:
+
+<?xml version="1.0"?>
+<mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'
+>
+  <mime-type type="text/x-shiny">
+  <comment>Shiny new file type</comment>
+  <glob pattern="*.shiny"/>
+  <glob pattern="*.shi"/>
+  </mime-type>
+</mime-info>
+
+   An icon for this new file type must also be installed, for
+   example with:
+xdg-icon-resource install --context mimetypes --size 64 shiny-file-icon.
+png text-x-shiny
+_MANUALPAGE
+}
+
+usage() {
+cat << '_USAGE'
+   xdg-mime -- command line tool for querying information about
+   file type handling and adding descriptions for new file types
+
+Synopsis
+
+   xdg-mime query { filetype FILE | default mimetype }
+
+   xdg-mime default application mimetype(s)
+
+   xdg-mime install [--mode mode] [--novendor] mimetypes-file
+
+   xdg-mime uninstall [--mode mode] mimetypes-file
+
+   xdg-mime { --help | --manual | --version }
+
+_USAGE
+}
+
+#@xdg-utils-common@
+#----------------------------------------------------------------------------
+#   Common utility functions included in all XDG wrapper scripts
+#----------------------------------------------------------------------------
+
+#shellcheck shell=sh
+
+DEBUG() {
+  [ -z "${XDG_UTILS_DEBUG_LEVEL}" ] && return 0;
+  [ "${XDG_UTILS_DEBUG_LEVEL}" -lt "$1" ] && return 0;
+  shift
+  echo "$@" >&2
+}
+
+# This handles backslashes but not quote marks.
+first_word() {
+  # shellcheck disable=SC2162
+  read first rest; echo "$first"
+}
+
+# Map a .desktop file to a binary
+desktop_file_to_binary() {
+  search="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+  desktop="$(basename "$1")"
+  IFS=:
+  for dir in $search; do
+    unset IFS
+
+    [ "$dir" ] && [ -d "$dir/applications" ] || [ -d "$dir/applnk" ] || continue
+    # Check if desktop file contains -
+    if [ "${desktop#*-}" != "$desktop" ]; then
+      vendor=${desktop%-*}
+      app=${desktop#*-}
+      if [ -r "$dir/applications/$vendor/$app" ]; then
+        file_path="$dir/applications/$vendor/$app"
+      elif [ -r "$dir/applnk/$vendor/$app" ]; then
+        file_path="$dir/applnk/$vendor/$app"
+      fi
+    fi
+
+    if test -z "$file_path" ; then
+      for indir in "$dir"/applications/ "$dir"/applications/*/ "$dir"/applnk/ "$dir"/applnk/*/; do
+        file="$indir/$desktop"
+        if [ -r "$file" ]; then
+          file_path=$file
+          break
+        fi
+      done
+    fi
+
+    if [ -r "$file_path" ]; then
+      # Remove any arguments (%F, %f, %U, %u, etc.).
+      command="$(grep -E "^Exec(\[[^]=]*])?=" "$file_path" | cut -d= -f 2- | first_word)"
+      command="$(command -v "$command")"
+      xdg_realpath "$command"
+      return
+    fi
+  done
+}
+
+# Exit script on successfully completing the desired operation
+# shellcheck disable=SC2120 # It is okay to call this without arguments
+exit_success() {
+  if [ $# -gt 0 ]; then
+    echo "$*"
+    echo
+  fi
+
+  exit 0
+}
+
+
+#-----------------------------------------
+# Exit script on malformed arguments, not enough arguments
+# or missing required option.
+# prints usage information
+
+exit_failure_syntax() {
+  if [ $# -gt 0 ]; then
+    echo "xdg-mime: $*" >&2
+    echo "Try 'xdg-mime --help' for more information." >&2
+  else
+    usage
+    echo "Use 'man xdg-mime' or 'xdg-mime --manual' for additional info."
+  fi
+
+  exit 1
+}
+
+#-------------------------------------------------------------
+# Exit script on missing file specified on command line
+
+exit_failure_file_missing() {
+  if [ $# -gt 0 ]; then
+    echo "xdg-mime: $*" >&2
+  fi
+
+  exit 2
+}
+
+#-------------------------------------------------------------
+# Exit script on failure to locate necessary tool applications
+
+exit_failure_operation_impossible() {
+  if [ $# -gt 0 ]; then
+    echo "xdg-mime: $*" >&2
+  fi
+
+  exit 3
+}
+
+#-------------------------------------------------------------
+# Exit script on failure returned by a tool application
+
+exit_failure_operation_failed() {
+  if [ $# -gt 0 ]; then
+    echo "xdg-mime: $*" >&2
+  fi
+
+  exit 4
+}
+
+#------------------------------------------------------------
+# Exit script on insufficient permission to read a specified file
+
+exit_failure_file_permission_read() {
+  if [ $# -gt 0 ]; then
+    echo "xdg-mime: $*" >&2
+  fi
+
+  exit 5
+}
+
+#------------------------------------------------------------
+# Exit script on insufficient permission to write a specified file
+
+check_input_file() {
+  if [ ! -e "$1" ]; then
+    exit_failure_file_missing "file '$1' does not exist"
+  fi
+  if [ ! -r "$1" ]; then
+    exit_failure_file_permission_read "no permission to read file '$1'"
+  fi
+}
+
+check_vendor_prefix() {
+  file_label="$2"
+
+  [ -n "$file_label" ] || file_label="filename"
+
+  file="$(basename "$1")"
+
+  case "$file" in
+    [[:alpha:]]*-*)
+      return
+    ;;
+  esac
+
+  echo "xdg-mime: $file_label '$file' does not have a proper vendor prefix" >&2
+  echo 'A vendor prefix consists of alpha characters ([a-zA-Z]) and is terminated' >&2
+  echo 'with a dash ("-"). An example '"$file_label"' is '"'example-$file'" >&2
+  echo "Use --novendor to override or 'xdg-mime --manual' for additional info." >&2
+  exit 1
+}
+
+#----------------------------------------
+# Checks for shared commands, e.g. --help
+
+check_common_commands() {
+  while [ $# -gt 0 ] ; do
+    parm="$1"
+    shift
+
+    case "$parm" in
+      --help)
+      usage
+        echo "Use 'man xdg-mime' or 'xdg-mime --manual' for additional info."
+        exit_success
+      ;;
+
+      --manual)
+        manualpage
+        exit_success
+      ;;
+
+      --version)
+        echo "xdg-mime 1.2.1"
+        exit_success
+      ;;
+
+      --)
+      [ -z "$XDG_UTILS_ENABLE_DOUBLE_HYPEN" ] || break
+      ;;
+    esac
+  done
+}
+
+check_common_commands "$@"
+
+[ -z "${XDG_UTILS_DEBUG_LEVEL}" ] && unset XDG_UTILS_DEBUG_LEVEL;
+# shellcheck disable=SC2034
+if [ "${XDG_UTILS_DEBUG_LEVEL-0}" -lt 1 ]; then
+  # Be silent
+  xdg_redirect_output=" > /dev/null 2> /dev/null"
+else
+  # All output to stderr
+  xdg_redirect_output=" >&2"
+fi
+
+
+#----------------------------------------------------------------------------
+# Prefixes a path with a "./" if it starts with a "-".
+# This is useful for programs to not confuse paths with options.
+
+unoption_path() {
+  case "$1" in
+  -*)
+    printf "./%s" "$1" ;;
+  *)
+    printf "%s" "$1" ;;
+  esac
+}
+
+#----------------------------------------------------------------------------
+# Performs a symlink and relative path resolving for a single argument.
+# This will always fail if the given file does not exist!
+
+xdg_realpath() {
+  # allow caching and external configuration
+  if [ -z "$XDG_UTILS_REALPATH_BACKEND" ] ; then
+  if command -v realpath >/dev/null 2>/dev/null ; then
+    lines="$(realpath -- / 2>&1)"
+    if [ $? = 0 ] && [ "$lines" = "/" ] ; then
+    XDG_UTILS_REALPATH_BACKEND="realpath"
+    else
+    # The realpath took the -- literally, probably the busybox implementation
+    XDG_UTILS_REALPATH_BACKEND="busybox-realpath"
+    fi
+    unset lines
+  elif command -v readlink >/dev/null 2>/dev/null ; then
+    XDG_UTILS_REALPATH_BACKEND="readlink"
+  else
+    exit_failure_operation_failed "No usable realpath backend found. Have a realpath binary or a readlink -f that canonicalizes paths."
+  fi
+  fi
+  # Always fail if the file doesn't exist (busybox realpath does that for example)
+  [ -e "$1" ] || return 1
+  case "$XDG_UTILS_REALPATH_BACKEND" in
+  realpath)
+    realpath -- "$1"
+    ;;
+  busybox-realpath)
+    # busybox style realpath implementations have options too
+    realpath "$(unoption_path "$1")"
+    ;;
+  readlink)
+    readlink -f "$(unoption_path "$1")"
+    ;;
+  *)
+    exit_failure_operation_impossible "Realpath backend '$XDG_UTILS_REALPATH_BACKEND' not recognized."
+    ;;
+  esac
+}
+
+info_generic() {
+  if mimetype --version >/dev/null 2>&1; then
+    DEBUG 1 "Running mimetype --brief --dereference \"$1\""
+    mimetype --brief --dereference "$1"
+  else
+    DEBUG 1 "Running file --brief --dereference --mime-type \"$1\""
+    /usr/bin/file --brief --dereference --mime-type "$1" 2> /dev/null
+  fi
+
+  if [ $? -eq 0 ]; then
+    exit_success
+  else
+    exit_failure_operation_failed
+  fi
+}
+
+search_desktop_file() {
+  local MIME dir
+  MIME="$1"
+  dir="$2"
+
+  grep -l "$MIME;" "$dir/"*.desktop 2>/dev/null
+
+  for f in "$dir/"*/; do
+    [ -d "$f" ] && search_desktop_file "$MIME" "$f"
+  done
+}
+
+defapp_fallback() {
+  MIME="$1"
+
+  xdg_user_dir="$XDG_DATA_HOME"
+  [ -n "$xdg_user_dir" ] || xdg_user_dir="$HOME/.local/share"
+
+  xdg_system_dirs="$XDG_DATA_DIRS"
+  [ -n "$xdg_system_dirs" ] || xdg_system_dirs=/usr/local/share/:/usr/share/
+
+  preference=-1
+  desktop_file=""
+  old_ifs="$IFS"
+  IFS=:
+  for d in $xdg_user_dir $xdg_system_dirs ; do
+   IFS="$old_ifs"
+     for x in $(search_desktop_file "$MIME" "$d/applications") ; do
+      pref="0$(awk -F"=" '/InitialPreference=/ {print($2)}' "$x")"
+      DEBUG 2 " Checking $x"
+
+      if [ "$pref" -gt "$preference" ]; then
+       DEBUG 2 "   Select $x [ $preference => $pref ]"
+       preference=$pref
+       desktop_file=$x
+      fi
+     done
+  done
+
+  if [ -n "$desktop_file" ] ; then
+     basename "$desktop_file"
+     exit_success
+  fi
+}
+
+check_mimeapps_list() {
+  local mimetype dir desktop oldifs
+  mimetype="$1"
+  dir="$2"
+  oldifs="$IFS"
+
+  IFS=:
+  for desktop in $XDG_CURRENT_DESKTOP ''; do
+    IFS="$oldifs"
+    local prefix mimeapps_list result
+    if [ -n "$desktop" ]; then
+      prefix="$(echo "$desktop-" | tr '[:upper:]' '[:lower:]')"
+    else
+      prefix=""
+    fi
+    mimeapps_list="$dir/${prefix}mimeapps.list"
+    if [ -f "$mimeapps_list" ] ; then
+      DEBUG 2 "Checking $mimeapps_list"
+      result="$(awk -v mimetype="$mimetype" '
+  BEGIN {
+    prefix=mimetype "="
+    indefault=0
+    found=0
+  }
+  {
+    if (index($0, "[Default Applications]") == 1) {
+      indefault=1
+    } else if (index($0, "[") == 1) {
+      indefault=0
+    } else if (!found && indefault && index($0, prefix) == 1) {
+      print substr($0, length(prefix) +1, length())
+      found=1
+    }
+  }
+' "$mimeapps_list")"
+      if [ -n "$result" ]; then
+        # $result could be a ; separated list of .desktop files
+        # use the first on the system
+        IFS=\;
+        for app in $result; do
+          IFS="$oldifs"
+          exists=$(desktop_file_to_binary "$app")
+          if [ -n "$exists" ]; then
+            echo "$app"
+            exit_success
+          fi
+        done
+      fi
+    fi
+  done
+}
+
+defapp_generic() {
+  MIME="$1"
+  xdg_config_home="$XDG_CONFIG_HOME"
+  [ -n "$xdg_config_home" ] || xdg_config_home="$HOME/.config"
+  #shellcheck disable=SC2153 # not misspelled
+  xdg_config_dirs="$XDG_CONFIG_DIRS"
+  [ -n "$xdg_config_dirs" ] || xdg_config_dirs="/etc/xdg"
+  xdg_user_dir="$XDG_DATA_HOME"
+  [ -n "$xdg_user_dir" ] || xdg_user_dir="$HOME/.local/share"
+  xdg_system_dirs="$XDG_DATA_DIRS"
+  [ -n "$xdg_system_dirs" ] || xdg_system_dirs=/usr/local/share/:/usr/share/
+
+  local oldifs dir
+
+  oldifs="$IFS"
+  IFS=:
+  for dir in $xdg_config_home $xdg_config_dirs; do
+    IFS="$oldifs"
+    check_mimeapps_list "$MIME" "$dir"
+  done
+
+  IFS=:
+  for dir in $xdg_user_dir $xdg_system_dirs; do
+    IFS="$oldifs"
+    check_mimeapps_list "$MIME" "$dir/applications"
+  done
+
+  IFS=:
+  for x in $xdg_user_dir $xdg_system_dirs ; do
+     IFS="$oldifs"
+     for prefix in "$XDG_MENU_PREFIX" ""; do
+      DEBUG 2 "Checking $x/applications/${prefix}defaults.list and $x/applications/${prefix}mimeinfo.cache"
+      trader_result="$(
+      grep "$MIME=" "$x/applications/${prefix}defaults.list" "$x/applications/${prefix}mimeinfo.cache" 2> /dev/null |
+      head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
+      )"
+      if [ -n "$trader_result" ] ; then
+        echo "$trader_result"
+        exit_success
+      fi
+     done
+  done
+
+  defapp_fallback "$MIME"
+  exit_success
+}
+
+[ x"$1" != x"" ] || exit_failure_syntax
+
+mode=
+action=
+filename=
+mimetype=
+
+case $1 in
+  install) 
+    action=install
+  ;;
+  uninstall)
+    action=uninstall
+  ;;
+  query)
+    shift
+
+    if [ -z "$1" ] ; then
+      exit_failure_syntax "query type argument missing"
+    fi
+
+    case $1 in
+      filetype)
+        action=info
+
+        filename="$2"
+        if [ -z "$filename" ] ; then
+          exit_failure_syntax "FILE argument missing"
+        fi
+
+        case $filename in
+          -*)
+          exit_failure_syntax "unexpected option '$filename'"
+          ;;
+        esac
+
+        check_input_file "$filename"
+        filename="$(xdg_realpath "$filename")"
+      ;;
+
+      default)
+        action=defapp
+        mimetype="$2"
+
+        [ -z "$mimetype" ] && exit_failure_syntax "mimetype argument missing"
+
+        case $mimetype in
+          -*)
+            exit_failure_syntax "unexpected option '$mimetype'"
+          ;;
+
+          */*)
+            # Ok
+          ;;
+
+          *)
+            exit_failure_syntax "mimetype '$mimetype' is not in the form 'minor/major'"
+          ;;
+        esac
+      ;;
+
+      *)
+      exit_failure_syntax "unknown query type '$1'"
+      ;;
+    esac
+  ;;
+
+  *)
+    exit_failure_syntax "unknown command '$1'"
+  ;;
+esac
+
+shift
+
+
+if [ "$action" = "info" ]; then
+  DE="generic"
+
+  case "$DE" in
+    *)
+      info_generic "$filename"
+    ;;
+  esac
+
+  exit_failure_operation_impossible "no method available for querying MIME type of '$filename'"
+fi
+
+if [ "$action" = "defapp" ]; then
+  DE="generic"
+
+  case "$DE" in
+    *)
+      defapp_generic "$mimetype"
+    ;;
+  esac
+
+  exit_failure_operation_impossible "no method available for querying default application for '$mimetype'"
+fi
+
+vendor=true
+while [ $# -gt 0 ] ; do
+  parm="$1"
+  shift
+
+  case $parm in
+    --mode)
+      [ -z "$1" ] && exit_failure_syntax "mode argument missing for --mode"
+
+      case "$1" in
+        user)
+        mode="user"
+        ;;
+
+        system)
+        mode="system"
+        ;;
+
+        *)
+          exit_failure_syntax "unknown mode '$1'"
+        ;;
+      esac
+
+      shift
+    ;;
+
+    --novendor)
+      vendor=false
+    ;;
+
+    -*)
+      exit_failure_syntax "unexpected option '$parm'"
+    ;;
+
+    *)
+      if [ -n "$filename" ] ; then
+        exit_failure_syntax "unexpected argument '$parm'"
+      fi
+
+      filename="$parm"
+      check_input_file "$filename"
+    ;;
+  esac
+done
+
+if [ -z "$action" ] ; then
+  exit_failure_syntax "command argument missing"
+fi
+
+if [ -n "$XDG_UTILS_INSTALL_MODE" ] ; then
+  if [ "$XDG_UTILS_INSTALL_MODE" = "system" ] ; then
+    mode="system"
+  elif [ "$XDG_UTILS_INSTALL_MODE" = "user" ] ; then
+    mode="user"
+  fi
+fi
+
+if [ -z "$mode" ] ; then
+  if [ "$(id -u)" -eq 0 ] ; then
+    mode="system"
+  else
+    mode="user"
+  fi
+fi
+
+if [ -z "$filename" ] ; then
+  exit_failure_syntax "mimetypes-file argument missing"
+fi
+
+if [ "$vendor" =  "true" ] && [ "$action" = "install" ] ; then
+  check_vendor_prefix "$filename"
+fi
+
+xdg_dir_name="mime/packages/"
+
+xdg_user_dir="$XDG_DATA_HOME"
+[ -n "$xdg_user_dir" ] || xdg_user_dir="$HOME/.local/share"
+xdg_user_dir="$xdg_user_dir/$xdg_dir_name"
+
+xdg_system_dirs="$XDG_DATA_DIRS"
+[ -n "$xdg_system_dirs" ] || xdg_system_dirs=/usr/local/share/:/usr/share/
+
+old_ifs="$IFS"
+IFS=:
+for x in $xdg_system_dirs ; do
+  IFS="$old_ifs"
+  if [ -w "$x/$xdg_dir_name" ] ; then
+    xdg_global_dir="$x/$xdg_dir_name"
+    break
+  fi
+done
+[ -w "$xdg_global_dir" ] || xdg_global_dir=
+DEBUG 3 "xdg_user_dir: $xdg_user_dir"
+DEBUG 3 "xdg_global_dir: $xdg_global_dir"
+
+if [ "$mode" = "user" ] ; then
+  xdg_dir="$xdg_user_dir"
+  umask="077"
+else
+  xdg_dir="$xdg_global_dir"
+  umask="022"
+  if [ -z "${xdg_dir}" ] ; then
+    exit_failure_operation_impossible "No writable system mimetype directory found."
+  fi
+fi
+
+basefile="$(basename "$filename")"
+
+DEBUG 1 "$action mimetype in $xdg_dir"
+
+case $action in
+  install)
+    save_umask="$(umask)"
+    umask "$umask"
+
+    for x in $xdg_dir ; do
+      mkdir -p "$x"
+      eval 'cp $filename $x/$basefile'$xdg_redirect_output
+    done
+
+    umask "$save_umask"
+    ;;
+
+  uninstall)
+    for x in $xdg_dir ; do
+      rm -f "$x/$basefile"
+    done
+
+    # No quotes around $mimetypes
+    ;;
+esac
+
+exit_success
