@@ -33,7 +33,7 @@ ln -s "../opt/xdg-open-simple/xdg-open" "xdg-open"
 
 These tips are not specific to this project, will work with the stock `xdg-utils` too.
 
-### Registering the user default file and URL handlers
+### Setting the user default file and URL associations
 
 `$HOME/.config/mimeapps.list`:
 
