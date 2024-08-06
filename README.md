@@ -2,7 +2,7 @@
 
 Utility script to open a file or URI in the user's preferred application.
 
-A fork of the original `xdg-open` (and `xdg-mime`) scripts from the `xdg-utils` (version 1.2.1).
+A fork of the original `xdg-open` (and `xdg-mime`) scripts from the `xdg-utils`.
 
 `xdg-open` is the default utility of opening files and URLs in most Linux desktop systems.
 
