@@ -476,36 +476,6 @@ search_desktop_file() {
   done
 }
 
-defapp_fallback() {
-  MIME="$1"
-
-  xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
-  xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
-
-  preference="-1"
-  desktop_file=""
-
-  IFS_="$IFS" IFS=:
-  for d in $xdg_user_dir $xdg_system_dirs ; do
-    IFS="$IFS_"
-    for x in $(search_desktop_file "$MIME" "$d/applications") ; do
-      pref="0$(awk -F"=" '/InitialPreference=/ {print($2)}' "$x")"
-      DEBUG 2 " Checking $x"
-
-      [ "$pref" -gt "$preference" ] && {
-        DEBUG 2 "   Select $x [ $preference => $pref ]"
-        preference=$pref
-        desktop_file=$x
-      }
-    done
-  done
-
-  [ "$desktop_file" ] && {
-    basename "$desktop_file"
-    exit_success
-  }
-}
-
 check_mimeapps_list() {
   mimetype="$1"
   dir="$2"
@@ -551,14 +521,13 @@ BEGIN {
 
 defapp_generic() {
   MIME="$1"
+
   xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
   xdg_config_dirs="${XDG_CONFIG_DIRS:-/etc/xdg}"
   xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
   xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
-  dir=""
-  IFS_="$IFS"
-  IFS=:
+  IFS_="$IFS" IFS=:
   for dir in $xdg_config_home $xdg_config_dirs; do
     IFS="$IFS_"
     check_mimeapps_list "$MIME" "$dir"
@@ -571,24 +540,40 @@ defapp_generic() {
   done
 
   IFS=:
-  for x in $xdg_user_dir $xdg_system_dirs ; do
+  for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
+    DEBUG 2 "Checking ${dir}/applications/defaults.list and ${dir}/applications/mimeinfo.cache"
 
-    for prefix in "$XDG_MENU_PREFIX" ""; do
-      DEBUG 2 "Checking $x/applications/${prefix}defaults.list and $x/applications/${prefix}mimeinfo.cache"
+    trader_result="$(
+      grep "$MIME=" "${dir}/applications/defaults.list" "${dir}/applications/mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
+    )"
 
-      trader_result="$(
-        grep "$MIME=" "$x/applications/${prefix}defaults.list" "$x/applications/${prefix}mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
-      )"
+    [ "$trader_result" ] && {
+      echo "$trader_result"
+      exit_success
+    }
+  done
 
-      [ "$trader_result" ] && {
-        echo "$trader_result"
-        exit_success
+  preference="-1"
+  desktop_file=""
+
+  IFS_="$IFS" IFS=:
+  for dir in $xdg_user_dir $xdg_system_dirs; do
+    IFS="$IFS_"
+    for x in $(search_desktop_file "$MIME" "${dir}/applications") ; do
+      pref="0$(awk -F"=" '/InitialPreference=/ {print($2)}' "$x")"
+      DEBUG 2 " Checking $x"
+
+      [ "$pref" -gt "$preference" ] && {
+        DEBUG 2 "   Select ${x} [ ${preference} => ${pref} ]"
+        preference=$pref
+        desktop_file="$x"
       }
     done
   done
 
-  defapp_fallback "$MIME"
+  [ "$desktop_file" ] && basename "$desktop_file"
+
   exit_success
 }
 
