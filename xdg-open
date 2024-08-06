@@ -124,10 +124,12 @@ last_word() {
 # This is useful for programs to not confuse paths with options.
 unoption_path() {
   case "$1" in
-  -*)
-    printf "./%s" "$1" ;;
-  *)
-    printf "%s" "$1" ;;
+    -*)
+      printf "./%s" "$1"
+    ;;
+    *)
+      printf "%s" "$1"
+    ;;
   esac
 }
 
