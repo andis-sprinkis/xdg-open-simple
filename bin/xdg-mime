@@ -518,13 +518,10 @@ xdg_realpath() {
 
 info_generic() {
   DEBUG 1 "Running file --brief --dereference --mime-type \"$1\""
-  /usr/bin/file --brief --dereference --mime-type "$1" 2> /dev/null
 
-  if [ $? -eq 0 ]; then
-    exit_success
-  else
-    exit_failure_operation_failed
-  fi
+  /usr/bin/file --brief --dereference --mime-type "$1" 2> /dev/null && exit_success
+
+  exit_failure_operation_failed
 }
 
 search_desktop_file() {
@@ -683,29 +680,24 @@ case $1 in
   query)
     shift
 
-    if [ -z "$1" ] ; then
-      exit_failure_syntax "query type argument missing"
-    fi
+    [ -z "$1" ] && exit_failure_syntax "query type argument missing"
 
     case $1 in
       filetype)
         action=info
 
         filename="$2"
-        if [ -z "$filename" ] ; then
-          exit_failure_syntax "FILE argument missing"
-        fi
+        [ -z "$filename" ] && exit_failure_syntax "FILE argument missing"
 
         case $filename in
           -*)
-          exit_failure_syntax "unexpected option '$filename'"
+            exit_failure_syntax "unexpected option '$filename'"
           ;;
         esac
 
         check_input_file "$filename"
         filename="$(xdg_realpath "$filename")"
       ;;
-
       default)
         action=defapp
         mimetype="$2"
@@ -726,13 +718,11 @@ case $1 in
           ;;
         esac
       ;;
-
       *)
-      exit_failure_syntax "unknown query type '$1'"
+        exit_failure_syntax "unknown query type '$1'"
       ;;
     esac
   ;;
-
   *)
     exit_failure_syntax "unknown command '$1'"
   ;;
@@ -740,30 +730,14 @@ esac
 
 shift
 
-
-if [ "$action" = "info" ]; then
-  DE="generic"
-
-  case "$DE" in
-    *)
-      info_generic "$filename"
-    ;;
-  esac
-
-  exit_failure_operation_impossible "no method available for querying MIME type of '$filename'"
-fi
-
-if [ "$action" = "defapp" ]; then
-  DE="generic"
-
-  case "$DE" in
-    *)
-      defapp_generic "$mimetype"
-    ;;
-  esac
-
-  exit_failure_operation_impossible "no method available for querying default application for '$mimetype'"
-fi
+case "$action" in
+  "info") 
+    info_generic "$filename"
+  ;;
+  "defapp") 
+    defapp_generic "$mimetype"
+  ;;
+esac
 
 vendor=true
 while [ $# -gt 0 ] ; do
@@ -778,11 +752,9 @@ while [ $# -gt 0 ] ; do
         user)
           mode="user"
         ;;
-
         system)
           mode="system"
         ;;
-
         *)
           exit_failure_syntax "unknown mode '$1'"
         ;;
@@ -834,13 +806,8 @@ if [ "$vendor" =  "true" ] && [ "$action" = "install" ] ; then
 fi
 
 xdg_dir_name="mime/packages/"
-
-xdg_user_dir="$XDG_DATA_HOME"
-[ -n "$xdg_user_dir" ] || xdg_user_dir="$HOME/.local/share"
-xdg_user_dir="$xdg_user_dir/$xdg_dir_name"
-
-xdg_system_dirs="$XDG_DATA_DIRS"
-[ -n "$xdg_system_dirs" ] || xdg_system_dirs=/usr/local/share/:/usr/share/
+xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}/$xdg_dir_name"
+xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
 old_ifs="$IFS"
 IFS=:
