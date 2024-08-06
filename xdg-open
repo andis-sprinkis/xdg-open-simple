@@ -90,8 +90,7 @@ EXAMPLES
 "
 
 exit_err_cmd_syntax() {
-  echo "$help_info" 1>&2
-  exit "1"
+  echo "$help_info" 1>&2; exit "1"
 }
 
 while getopts :h name; do
