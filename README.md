@@ -9,7 +9,7 @@ Notable properties of this fork are:
 -   [x] A lot more concise than the original `xdg-open`.
 -   [x] Relies solely on the `.desktop`, `mimeapps.list` files information for opening files and URIs.
 -   [x] Doesn't auto-forward paths without a known handler to a web browser.
--   [x] Doesn't auto-forward paths to any other or DE-specific file openers.
+-   [x] Doesn't auto-forward paths to any other or DE-specific file opener.
 -   [x] Has no dependency on the `xdg-utils` scripts.
 -   [x] The applicable error exit codes are retained from the original `xdg-open`.
 -   [x] Handles the relative file paths.
