@@ -93,10 +93,12 @@ exit_err_cmd_syntax() {
 
 while getopts :h name; do
   case $name in
-    h) echo "$help_info"; exit
-      ;;
-    ?) exit_err_cmd_syntax
-       ;;
+    h)
+      echo "$help_info"; exit
+    ;;
+    ?)
+      exit_err_cmd_syntax
+    ;;
   esac
 done
 
