@@ -623,15 +623,10 @@ check_mimeapps_list() {
 
 defapp_generic() {
   MIME="$1"
-  xdg_config_home="$XDG_CONFIG_HOME"
-  [ -n "$xdg_config_home" ] || xdg_config_home="$HOME/.config"
-  #shellcheck disable=SC2153 # not misspelled
-  xdg_config_dirs="$XDG_CONFIG_DIRS"
-  [ -n "$xdg_config_dirs" ] || xdg_config_dirs="/etc/xdg"
-  xdg_user_dir="$XDG_DATA_HOME"
-  [ -n "$xdg_user_dir" ] || xdg_user_dir="$HOME/.local/share"
-  xdg_system_dirs="$XDG_DATA_DIRS"
-  [ -n "$xdg_system_dirs" ] || xdg_system_dirs=/usr/local/share/:/usr/share/
+  xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+  xdg_config_dirs="${XDG_CONFIG_DIRS:-/etc/xdg}"
+  xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
+  xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
   local oldifs dir
 
@@ -778,11 +773,11 @@ while [ $# -gt 0 ] ; do
 
       case "$1" in
         user)
-        mode="user"
+          mode="user"
         ;;
 
         system)
-        mode="system"
+          mode="system"
         ;;
 
         *)
@@ -792,19 +787,14 @@ while [ $# -gt 0 ] ; do
 
       shift
     ;;
-
     --novendor)
       vendor=false
     ;;
-
     -*)
       exit_failure_syntax "unexpected option '$parm'"
     ;;
-
     *)
-      if [ -n "$filename" ] ; then
-        exit_failure_syntax "unexpected argument '$parm'"
-      fi
+      [ -n "$filename" ] && exit_failure_syntax "unexpected argument '$parm'"
 
       filename="$parm"
       check_input_file "$filename"
