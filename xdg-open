@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-#   xdg-utils-simple xdg-open
+#   xdg-open-simple xdg-open
 #
 #   Utility script to open a file or URI in the user's preferred application.
 #
