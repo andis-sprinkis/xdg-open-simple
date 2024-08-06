@@ -469,7 +469,7 @@ search_desktop_file() {
   MIME="$1"
   dir="$2"
 
-  grep -l "$MIME;" "$dir/"*.desktop 2>/dev/null
+  grep -l "$MIME;" "${dir}/"*.desktop 2>/dev/null
 
   for f in "$dir/"*/; do
     [ -d "$f" ] && search_desktop_file "$MIME" "$f"
