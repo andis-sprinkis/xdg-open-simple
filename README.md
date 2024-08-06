@@ -22,6 +22,8 @@ Add this line to some shell initialization script (e.g. `$HOME/.profile` for Bas
 PATH="$HOME/.local/bin:$PATH"
 ```
 
+Run:
+
 ```sh
 mkdir -p "$HOME/.local/opt/" "$HOME/.local/bin"
 git clone "https://github.com/andis-sprinkis/xdg-open-simple/" "$HOME/.local/opt/xdg-open-simple"
