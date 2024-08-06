@@ -546,8 +546,8 @@ defapp_fallback() {
   done
 
   [ "$desktop_file" ] && {
-     basename "$desktop_file"
-     exit_success
+    basename "$desktop_file"
+    exit_success
   }
 }
 
