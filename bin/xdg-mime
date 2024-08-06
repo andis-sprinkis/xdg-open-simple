@@ -482,7 +482,7 @@ defapp_fallback() {
   xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
   xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
-  preference=-1
+  preference="-1"
   desktop_file=""
 
   IFS_="$IFS" IFS=:
@@ -507,10 +507,8 @@ defapp_fallback() {
 }
 
 check_mimeapps_list() {
-  local mimetype dir desktop
   mimetype="$1"
   dir="$2"
-
   mimeapps_list="$dir/mimeapps.list"
 
   [ -f "$mimeapps_list" ] && {
