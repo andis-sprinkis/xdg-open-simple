@@ -552,60 +552,48 @@ defapp_fallback() {
 }
 
 check_mimeapps_list() {
-  local mimetype dir desktop oldifs
+  local mimetype dir desktop
   mimetype="$1"
   dir="$2"
 
-  oldifs="$IFS"
-  IFS=:
-  for desktop in $XDG_CURRENT_DESKTOP ''; do
-    IFS="$oldifs"
+  mimeapps_list="$dir/mimeapps.list"
 
-    local prefix mimeapps_list result
+  [ -f "$mimeapps_list" ] && {
+    DEBUG 2 "Checking $mimeapps_list"
 
-    if [ "$desktop" ]; then
-      prefix="$(echo "$desktop-" | tr '[:upper:]' '[:lower:]')"
-    else
-      prefix=""
-    fi
-
-    mimeapps_list="$dir/${prefix}mimeapps.list"
-
-    if [ -f "$mimeapps_list" ] ; then
-      DEBUG 2 "Checking $mimeapps_list"
-      result="$(awk -v mimetype="$mimetype" '
-  BEGIN {
-    prefix=mimetype "="
+    result="$(
+      awk -v mimetype="$mimetype" '
+BEGIN {
+  prefix=mimetype "="
+  indefault=0
+  found=0
+}
+{
+  if (index($0, "[Default Applications]") == 1) {
+    indefault=1
+  } else if (index($0, "[") == 1) {
     indefault=0
-    found=0
+  } else if (!found && indefault && index($0, prefix) == 1) {
+    print substr($0, length(prefix) +1, length())
+    found=1
   }
-  {
-    if (index($0, "[Default Applications]") == 1) {
-      indefault=1
-    } else if (index($0, "[") == 1) {
-      indefault=0
-    } else if (!found && indefault && index($0, prefix) == 1) {
-      print substr($0, length(prefix) +1, length())
-      found=1
+}
+' "$mimeapps_list"
+    )"
+
+    [ "$result" ] && {
+      # $result could be a ; separated list of .desktop files
+      # use the first on the system
+      IFS_="$IFS" IFS=\;
+      for app in $result; do
+        IFS="$IFS_"
+        [ "$(desktop_file_to_binary "$app")" ] && {
+          echo "$app"
+          exit_success
+        }
+      done
     }
   }
-' "$mimeapps_list")"
-      [ "$result" ] && {
-        # $result could be a ; separated list of .desktop files
-        # use the first on the system
-        IFS=\;
-        for app in $result; do
-          IFS="$oldifs"
-          exists=$(desktop_file_to_binary "$app")
-          [ "$exists" ] && {
-            echo "$app"
-            exit_success
-          }
-        done
-      }
-    fi
-
-  done
 }
 
 defapp_generic() {
