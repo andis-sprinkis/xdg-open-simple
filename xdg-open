@@ -3,7 +3,7 @@
 #
 #   Utility script to open a file or URI in the user's preferred application.
 #
-#   This script is a fork of the original xdg-open and xdg-mime scripts from xdg-utils v1.2.1.
+#   This script is a fork of the original xdg-open and xdg-mime scripts from the xdg-utils v1.2.1.
 #
 #   Copyright 2024, Andis Sprinkis <andis@sprinkis.com>
 #
