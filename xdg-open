@@ -319,10 +319,8 @@ file_url_to_path() {
 
   echo "$file" | grep -q '^file://' && {
     file=${file#file://localhost}
-    
     hostname="$(uname -n)"
     file=${file#file://"$hostname"}
-    
     file=${file#file://}
 
     ! echo "$file" | grep -q '^/' && {
