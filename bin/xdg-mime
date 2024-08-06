@@ -50,8 +50,6 @@ Synopsis
 
    xdg-mime query { filetype FILE | default mimetype }
 
-   xdg-mime default application mimetype(s)
-
    xdg-mime install [--mode mode] [--novendor] mimetypes-file
 
    xdg-mime uninstall [--mode mode] mimetypes-file
@@ -257,8 +255,8 @@ _USAGE
 #shellcheck shell=sh
 
 DEBUG() {
-  [ -z "${XDG_UTILS_DEBUG_LEVEL}" ] && return 0;
-  [ "${XDG_UTILS_DEBUG_LEVEL}" -lt "$1" ] && return 0;
+  [ -z "$XDG_UTILS_DEBUG_LEVEL" ] && return "0";
+  [ "$XDG_UTILS_DEBUG_LEVEL" -lt "$1" ] && return "0";
   shift
   echo "$@" >&2
 }
@@ -273,39 +271,42 @@ first_word() {
 desktop_file_to_binary() {
   search="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
   desktop="$(basename "$1")"
+
   IFS=:
   for dir in $search; do
     unset IFS
 
     [ "$dir" ] && [ -d "$dir/applications" ] || [ -d "$dir/applnk" ] || continue
+
     # Check if desktop file contains -
-    if [ "${desktop#*-}" != "$desktop" ]; then
+    [ "${desktop#*-}" != "$desktop" ] && {
       vendor=${desktop%-*}
       app=${desktop#*-}
+
       if [ -r "$dir/applications/$vendor/$app" ]; then
         file_path="$dir/applications/$vendor/$app"
       elif [ -r "$dir/applnk/$vendor/$app" ]; then
         file_path="$dir/applnk/$vendor/$app"
       fi
-    fi
+    }
 
-    if test -z "$file_path" ; then
+    [ -z "$file_path" ] && {
       for indir in "$dir"/applications/ "$dir"/applications/*/ "$dir"/applnk/ "$dir"/applnk/*/; do
         file="$indir/$desktop"
-        if [ -r "$file" ]; then
+        [ -r "$file" ] && {
           file_path=$file
           break
-        fi
+        }
       done
-    fi
+    }
 
-    if [ -r "$file_path" ]; then
+    [ -r "$file_path" ] && {
       # Remove any arguments (%F, %f, %U, %u, etc.).
       command="$(grep -E "^Exec(\[[^]=]*])?=" "$file_path" | cut -d= -f 2- | first_word)"
       command="$(command -v "$command")"
       xdg_realpath "$command"
       return
-    fi
+    }
   done
 }
 
@@ -342,10 +343,7 @@ exit_failure_syntax() {
 # Exit script on missing file specified on command line
 
 exit_failure_file_missing() {
-  if [ $# -gt 0 ]; then
-    echo "xdg-mime: $*" >&2
-  fi
-
+  [ $# -gt 0 ] && echo "xdg-mime: $*" >&2
   exit 2
 }
 
@@ -353,10 +351,7 @@ exit_failure_file_missing() {
 # Exit script on failure to locate necessary tool applications
 
 exit_failure_operation_impossible() {
-  if [ $# -gt 0 ]; then
-    echo "xdg-mime: $*" >&2
-  fi
-
+  [ $# -gt 0 ] && echo "xdg-mime: $*" >&2
   exit 3
 }
 
@@ -364,10 +359,7 @@ exit_failure_operation_impossible() {
 # Exit script on failure returned by a tool application
 
 exit_failure_operation_failed() {
-  if [ $# -gt 0 ]; then
-    echo "xdg-mime: $*" >&2
-  fi
-
+  [ $# -gt 0 ] && echo "xdg-mime: $*" >&2
   exit 4
 }
 
@@ -375,10 +367,7 @@ exit_failure_operation_failed() {
 # Exit script on insufficient permission to read a specified file
 
 exit_failure_file_permission_read() {
-  if [ $# -gt 0 ]; then
-    echo "xdg-mime: $*" >&2
-  fi
-
+  [ $# -gt 0 ] && echo "xdg-mime: $*" >&2
   exit 5
 }
 
@@ -386,18 +375,14 @@ exit_failure_file_permission_read() {
 # Exit script on insufficient permission to write a specified file
 
 check_input_file() {
-  if [ ! -e "$1" ]; then
-    exit_failure_file_missing "file '$1' does not exist"
-  fi
-  if [ ! -r "$1" ]; then
-    exit_failure_file_permission_read "no permission to read file '$1'"
-  fi
+  [ ! -e "$1" ] && exit_failure_file_missing "file '$1' does not exist"
+  [ ! -r "$1" ] && exit_failure_file_permission_read "no permission to read file '$1'"
 }
 
 check_vendor_prefix() {
   file_label="$2"
 
-  [ -n "$file_label" ] || file_label="filename"
+  [ "$file_label" ] || file_label="filename"
 
   file="$(basename "$1")"
 
@@ -458,7 +443,6 @@ else
   xdg_redirect_output=" >&2"
 fi
 
-
 #----------------------------------------------------------------------------
 # Prefixes a path with a "./" if it starts with a "-".
 # This is useful for programs to not confuse paths with options.
@@ -478,7 +462,7 @@ unoption_path() {
 
 xdg_realpath() {
   # allow caching and external configuration
-  if [ -z "$XDG_UTILS_REALPATH_BACKEND" ] ; then
+  [ -z "$XDG_UTILS_REALPATH_BACKEND" ] && {
     if command -v realpath >/dev/null 2>/dev/null ; then
       lines="$(realpath -- / 2>&1)"
 
@@ -495,10 +479,11 @@ xdg_realpath() {
     else
       exit_failure_operation_failed "No usable realpath backend found. Have a realpath binary or a readlink -f that canonicalizes paths."
     fi
-  fi
+  }
 
   # Always fail if the file doesn't exist (busybox realpath does that for example)
   [ -e "$1" ] || return 1
+
   case "$XDG_UTILS_REALPATH_BACKEND" in
     realpath)
       realpath -- "$1"
@@ -539,52 +524,53 @@ search_desktop_file() {
 defapp_fallback() {
   MIME="$1"
 
-  xdg_user_dir="$XDG_DATA_HOME"
-  [ -n "$xdg_user_dir" ] || xdg_user_dir="$HOME/.local/share"
-
-  xdg_system_dirs="$XDG_DATA_DIRS"
-  [ -n "$xdg_system_dirs" ] || xdg_system_dirs=/usr/local/share/:/usr/share/
+  xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
+  xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
   preference=-1
   desktop_file=""
-  old_ifs="$IFS"
-  IFS=:
+
+  IFS_="$IFS" IFS=:
   for d in $xdg_user_dir $xdg_system_dirs ; do
-   IFS="$old_ifs"
-     for x in $(search_desktop_file "$MIME" "$d/applications") ; do
+    IFS="$IFS_"
+    for x in $(search_desktop_file "$MIME" "$d/applications") ; do
       pref="0$(awk -F"=" '/InitialPreference=/ {print($2)}' "$x")"
       DEBUG 2 " Checking $x"
 
-      if [ "$pref" -gt "$preference" ]; then
-       DEBUG 2 "   Select $x [ $preference => $pref ]"
-       preference=$pref
-       desktop_file=$x
-      fi
-     done
+      [ "$pref" -gt "$preference" ] && {
+        DEBUG 2 "   Select $x [ $preference => $pref ]"
+        preference=$pref
+        desktop_file=$x
+      }
+    done
   done
 
-  if [ -n "$desktop_file" ] ; then
+  [ "$desktop_file" ] && {
      basename "$desktop_file"
      exit_success
-  fi
+  }
 }
 
 check_mimeapps_list() {
   local mimetype dir desktop oldifs
   mimetype="$1"
   dir="$2"
-  oldifs="$IFS"
 
+  oldifs="$IFS"
   IFS=:
   for desktop in $XDG_CURRENT_DESKTOP ''; do
     IFS="$oldifs"
+
     local prefix mimeapps_list result
-    if [ -n "$desktop" ]; then
+
+    if [ "$desktop" ]; then
       prefix="$(echo "$desktop-" | tr '[:upper:]' '[:lower:]')"
     else
       prefix=""
     fi
+
     mimeapps_list="$dir/${prefix}mimeapps.list"
+
     if [ -f "$mimeapps_list" ] ; then
       DEBUG 2 "Checking $mimeapps_list"
       result="$(awk -v mimetype="$mimetype" '
@@ -604,20 +590,21 @@ check_mimeapps_list() {
     }
   }
 ' "$mimeapps_list")"
-      if [ -n "$result" ]; then
+      [ "$result" ] && {
         # $result could be a ; separated list of .desktop files
         # use the first on the system
         IFS=\;
         for app in $result; do
           IFS="$oldifs"
           exists=$(desktop_file_to_binary "$app")
-          if [ -n "$exists" ]; then
+          [ "$exists" ] && {
             echo "$app"
             exit_success
-          fi
+          }
         done
-      fi
+      }
     fi
+
   done
 }
 
@@ -628,34 +615,35 @@ defapp_generic() {
   xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
   xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
-  local oldifs dir
-
-  oldifs="$IFS"
+  dir=""
+  IFS_="$IFS"
   IFS=:
   for dir in $xdg_config_home $xdg_config_dirs; do
-    IFS="$oldifs"
+    IFS="$IFS_"
     check_mimeapps_list "$MIME" "$dir"
   done
 
   IFS=:
   for dir in $xdg_user_dir $xdg_system_dirs; do
-    IFS="$oldifs"
+    IFS="$IFS_"
     check_mimeapps_list "$MIME" "$dir/applications"
   done
 
   IFS=:
   for x in $xdg_user_dir $xdg_system_dirs ; do
-     IFS="$oldifs"
+     IFS="$IFS_"
+
      for prefix in "$XDG_MENU_PREFIX" ""; do
-      DEBUG 2 "Checking $x/applications/${prefix}defaults.list and $x/applications/${prefix}mimeinfo.cache"
-      trader_result="$(
-      grep "$MIME=" "$x/applications/${prefix}defaults.list" "$x/applications/${prefix}mimeinfo.cache" 2> /dev/null |
-      head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
-      )"
-      if [ -n "$trader_result" ] ; then
-        echo "$trader_result"
-        exit_success
-      fi
+       DEBUG 2 "Checking $x/applications/${prefix}defaults.list and $x/applications/${prefix}mimeinfo.cache"
+
+       trader_result="$(
+         grep "$MIME=" "$x/applications/${prefix}defaults.list" "$x/applications/${prefix}mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
+       )"
+
+       [ "$trader_result" ] && {
+         echo "$trader_result"
+         exit_success
+       }
      done
   done
 
@@ -706,7 +694,7 @@ case $1 in
 
         case $mimetype in
           -*)
-            exit_failure_syntax "unexpected option '$mimetype'"
+            exit_failure_syntax "unexpected option '${mimetype}'"
           ;;
 
           */*)
@@ -714,17 +702,17 @@ case $1 in
           ;;
 
           *)
-            exit_failure_syntax "mimetype '$mimetype' is not in the form 'minor/major'"
+            exit_failure_syntax "mimetype '${mimetype}' is not in the form 'minor/major'"
           ;;
         esac
       ;;
       *)
-        exit_failure_syntax "unknown query type '$1'"
+        exit_failure_syntax "unknown query type '${1}'"
       ;;
     esac
   ;;
   *)
-    exit_failure_syntax "unknown command '$1'"
+    exit_failure_syntax "unknown command '${1}'"
   ;;
 esac
 
@@ -769,7 +757,7 @@ while [ $# -gt 0 ] ; do
       exit_failure_syntax "unexpected option '$parm'"
     ;;
     *)
-      [ -n "$filename" ] && exit_failure_syntax "unexpected argument '$parm'"
+      [ "$filename" ] && exit_failure_syntax "unexpected argument '$parm'"
 
       filename="$parm"
       check_input_file "$filename"
@@ -777,33 +765,27 @@ while [ $# -gt 0 ] ; do
   esac
 done
 
-if [ -z "$action" ] ; then
-  exit_failure_syntax "command argument missing"
-fi
+[ -z "$action" ] && exit_failure_syntax "command argument missing"
 
-if [ -n "$XDG_UTILS_INSTALL_MODE" ] ; then
-  if [ "$XDG_UTILS_INSTALL_MODE" = "system" ] ; then
+[ "$XDG_UTILS_INSTALL_MODE" ] && {
+  if [ "$XDG_UTILS_INSTALL_MODE" = "system" ]; then
     mode="system"
-  elif [ "$XDG_UTILS_INSTALL_MODE" = "user" ] ; then
+  elif [ "$XDG_UTILS_INSTALL_MODE" = "user" ]; then
     mode="user"
   fi
-fi
+}
 
-if [ -z "$mode" ] ; then
+[ -z "$mode" ] && {
   if [ "$(id -u)" -eq 0 ] ; then
     mode="system"
   else
     mode="user"
   fi
-fi
+}
 
-if [ -z "$filename" ] ; then
-  exit_failure_syntax "mimetypes-file argument missing"
-fi
+[ -z "$filename" ] && exit_failure_syntax "mimetypes-file argument missing"
 
-if [ "$vendor" =  "true" ] && [ "$action" = "install" ] ; then
-  check_vendor_prefix "$filename"
-fi
+[ "$vendor" =  "true" ] && [ "$action" = "install" ] && check_vendor_prefix "$filename"
 
 xdg_dir_name="mime/packages/"
 xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}/$xdg_dir_name"
@@ -828,9 +810,7 @@ if [ "$mode" = "user" ] ; then
 else
   xdg_dir="$xdg_global_dir"
   umask="022"
-  if [ -z "${xdg_dir}" ] ; then
-    exit_failure_operation_impossible "No writable system mimetype directory found."
-  fi
+  [ -z "${xdg_dir}" ] && exit_failure_operation_impossible "No writable system mimetype directory found."
 fi
 
 basefile="$(basename "$filename")"
@@ -848,15 +828,14 @@ case $action in
     done
 
     umask "$save_umask"
-    ;;
-
+  ;;
   uninstall)
     for x in $xdg_dir ; do
       rm -f "$x/$basefile"
     done
 
     # No quotes around $mimetypes
-    ;;
+  ;;
 esac
 
 exit_success
