@@ -313,10 +313,10 @@ desktop_file_to_binary() {
 # Exit script on successfully completing the desired operation
 # shellcheck disable=SC2120 # It is okay to call this without arguments
 exit_success() {
-  if [ $# -gt 0 ]; then
+  [ $# -gt 0 ] && {
     echo "$*"
     echo
-  fi
+  }
 
   exit 0
 }
@@ -619,27 +619,27 @@ defapp_generic() {
 
   IFS=:
   for x in $xdg_user_dir $xdg_system_dirs ; do
-     IFS="$IFS_"
+    IFS="$IFS_"
 
-     for prefix in "$XDG_MENU_PREFIX" ""; do
-       DEBUG 2 "Checking $x/applications/${prefix}defaults.list and $x/applications/${prefix}mimeinfo.cache"
+    for prefix in "$XDG_MENU_PREFIX" ""; do
+      DEBUG 2 "Checking $x/applications/${prefix}defaults.list and $x/applications/${prefix}mimeinfo.cache"
 
-       trader_result="$(
-         grep "$MIME=" "$x/applications/${prefix}defaults.list" "$x/applications/${prefix}mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
-       )"
+      trader_result="$(
+        grep "$MIME=" "$x/applications/${prefix}defaults.list" "$x/applications/${prefix}mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
+      )"
 
-       [ "$trader_result" ] && {
-         echo "$trader_result"
-         exit_success
-       }
-     done
+      [ "$trader_result" ] && {
+        echo "$trader_result"
+        exit_success
+      }
+    done
   done
 
   defapp_fallback "$MIME"
   exit_success
 }
 
-[ x"$1" != x"" ] || exit_failure_syntax
+[ "$1" != "" ] || exit_failure_syntax
 
 mode=
 action=
