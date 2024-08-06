@@ -461,6 +461,6 @@ open_xdg_mime() {
 # Has a URL scheme.
 scheme="$(echo "$url" | LC_ALL=C sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
 
-[ "$scheme" ] && open_xdg_mime "" "x-scheme-handler/$scheme" "$url"
+[ "$scheme" ] && open_xdg_mime "" "x-scheme-handler/${scheme}" "$url"
 
 exit "3"
