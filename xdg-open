@@ -317,11 +317,12 @@ get_key() {
 file_url_to_path() {
   file="$1"
 
-  hostname="$(uname -n)"
-
   echo "$file" | grep -q '^file://' && {
     file=${file#file://localhost}
+    
+    hostname="$(uname -n)"
     file=${file#file://"$hostname"}
+    
     file=${file#file://}
 
     ! echo "$file" | grep -q '^/' && {
