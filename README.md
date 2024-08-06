@@ -31,7 +31,7 @@ ln -s "../opt/xdg-open-simple/xdg-open" "xdg-open"
 
 ## How-to's
 
-These tips are not specific to this project - will work with the stock `xdg-utils` too.
+These tips are not specific to this project, will work with the stock `xdg-utils` too.
 
 ### Registering user default file handlers
 
