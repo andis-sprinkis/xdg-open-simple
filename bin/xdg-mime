@@ -1,5 +1,10 @@
 #!/bin/sh
 #---------------------------------------------
+#   WIP refactoring this
+#
+#   - Removed setting user default by changing user mimeapps.list, as user can update it themselves.
+#   - Removed DE detection and DE-specific handling of .desktop files
+#
 #   xdg-mime
 #
 #   Utility script to manipulate MIME related information
@@ -474,48 +479,46 @@ unoption_path() {
 xdg_realpath() {
   # allow caching and external configuration
   if [ -z "$XDG_UTILS_REALPATH_BACKEND" ] ; then
-  if command -v realpath >/dev/null 2>/dev/null ; then
-    lines="$(realpath -- / 2>&1)"
-    if [ $? = 0 ] && [ "$lines" = "/" ] ; then
-    XDG_UTILS_REALPATH_BACKEND="realpath"
+    if command -v realpath >/dev/null 2>/dev/null ; then
+      lines="$(realpath -- / 2>&1)"
+
+      if [ $? = 0 ] && [ "$lines" = "/" ] ; then
+        XDG_UTILS_REALPATH_BACKEND="realpath"
+      else
+        # The realpath took the -- literally, probably the busybox implementation
+        XDG_UTILS_REALPATH_BACKEND="busybox-realpath"
+      fi
+
+      unset lines
+    elif command -v readlink >/dev/null 2>/dev/null ; then
+      XDG_UTILS_REALPATH_BACKEND="readlink"
     else
-    # The realpath took the -- literally, probably the busybox implementation
-    XDG_UTILS_REALPATH_BACKEND="busybox-realpath"
+      exit_failure_operation_failed "No usable realpath backend found. Have a realpath binary or a readlink -f that canonicalizes paths."
     fi
-    unset lines
-  elif command -v readlink >/dev/null 2>/dev/null ; then
-    XDG_UTILS_REALPATH_BACKEND="readlink"
-  else
-    exit_failure_operation_failed "No usable realpath backend found. Have a realpath binary or a readlink -f that canonicalizes paths."
   fi
-  fi
+
   # Always fail if the file doesn't exist (busybox realpath does that for example)
   [ -e "$1" ] || return 1
   case "$XDG_UTILS_REALPATH_BACKEND" in
-  realpath)
-    realpath -- "$1"
+    realpath)
+      realpath -- "$1"
     ;;
-  busybox-realpath)
-    # busybox style realpath implementations have options too
-    realpath "$(unoption_path "$1")"
+    busybox-realpath)
+      # busybox style realpath implementations have options too
+      realpath "$(unoption_path "$1")"
     ;;
-  readlink)
-    readlink -f "$(unoption_path "$1")"
+    readlink)
+      readlink -f "$(unoption_path "$1")"
     ;;
-  *)
-    exit_failure_operation_impossible "Realpath backend '$XDG_UTILS_REALPATH_BACKEND' not recognized."
+    *)
+      exit_failure_operation_impossible "Realpath backend '$XDG_UTILS_REALPATH_BACKEND' not recognized."
     ;;
   esac
 }
 
 info_generic() {
-  if mimetype --version >/dev/null 2>&1; then
-    DEBUG 1 "Running mimetype --brief --dereference \"$1\""
-    mimetype --brief --dereference "$1"
-  else
-    DEBUG 1 "Running file --brief --dereference --mime-type \"$1\""
-    /usr/bin/file --brief --dereference --mime-type "$1" 2> /dev/null
-  fi
+  DEBUG 1 "Running file --brief --dereference --mime-type \"$1\""
+  /usr/bin/file --brief --dereference --mime-type "$1" 2> /dev/null
 
   if [ $? -eq 0 ]; then
     exit_success
