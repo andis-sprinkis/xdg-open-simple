@@ -33,7 +33,7 @@ ln -s "../opt/xdg-open-simple/xdg-open" "xdg-open"
 
 These tips are not specific to this project, will work with the stock `xdg-utils` too.
 
-### Registering user default file handlers
+### Registering the user default file and URL handlers
 
 `$HOME/.config/mimeapps.list`:
 
@@ -44,9 +44,6 @@ video/mp4=video.desktop
 ```
 
 -   [Association between MIME types and applications](https://specifications.freedesktop.org/mime-apps-spec/latest/)
-
-
-URLs get the `x-scheme-handler/*` MIME type, with the URL prefix as the suffix.
 
 The system `.desktop` files are in `/usr/share/applications`.
 
@@ -63,7 +60,7 @@ Exec=mpv --player-operation-mode=pseudo-gui -- %U
 
 -   [Desktop Entry Specification](https://specifications.freedesktop.org/desktop-entry-spec/latest/)
 
-### Getting the file MIME type
+### Printing the file MIME type
 
 ```sh
 file --brief --dereference --mime-type ./image.jpg
@@ -73,7 +70,9 @@ file --brief --dereference --mime-type ./image.jpg
 image/jpeg
 ```
 
-### Listing the known MIME types
+The URLs get the `x-scheme-handler/*` MIME type, with the URL prefix as the suffix.
+
+### Printing the known MIME types
 
 ```sh
 find /usr/share/mime/*/*.xml -type f | sed -e 's/\/usr\/share\/mime\///g' | less
@@ -86,7 +85,7 @@ application/appinstaller.xml
 ...
 ```
 
-### Preventing *Mozilla Firefox* from rewriting the user's `mimeapps.list` file
+### Preventing _Mozilla Firefox_ from rewriting the user's `mimeapps.list` file
 
 ```sh
 echo > "$HOME/.mozilla/firefox/PROIFLE.default-release/handlers.json'
