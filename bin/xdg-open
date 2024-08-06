@@ -6,13 +6,14 @@
 #   This script is a fork of the original xdg-open script from xdg-utils.
 #
 #   Notable properties of this fork are:
-#   - A lot more concise - ~75% less LOC.
 #   - Only uses the .desktop files and mimeapps.list.
-#   - Doesn't forward paths to any other, DE-specific file openers.
-#   - Doesn't forward paths without a known handler to a web browser.
+#   - Doesn't by itself forward paths to any other, DE-specific file openers.
+#   - Doesn't by itself forward paths without a known handler to a web browser.
 #   - Handles relative file paths.
 #   - The applicable error exit codes are retained from the original xdg-open script for compatibility.
 #   - Based on xdg-open version 1.2.1.
+#   - A lot more concise than the original xdg-open.
+#   - No dependency on xdg-mime.
 #
 #   The original xdg-open copyright:
 #
@@ -73,6 +74,9 @@ EXIT CODES
     4
         The action failed.
 
+    5
+        No permission to read one of the files passed on the command line.
+
     In case of success the process launched from the .desktop file will not be forked off and therefore may result in xdg-open-generic running for a very long time. This behaviour intentionally differs from most desktop specific openers to allow terminal based applications to run using the same terminal xdg-open was called from.
 
 SEE ALSO
@@ -130,6 +134,161 @@ unoption_path() {
   esac
 }
 
+# Map a .desktop file to a binary
+desktop_file_to_binary() {
+  search="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+  desktop="$(basename "$1")"
+
+  IFS=:
+  for dir in $search; do
+    unset IFS
+
+    [ "$dir" ] && [ -d "$dir/applications" ] || [ -d "$dir/applnk" ] || continue
+
+    # Check if desktop file contains -
+    [ "${desktop#*-}" != "$desktop" ] && {
+      vendor="${desktop%-*}" app="${desktop#*-}"
+
+      if [ -r "$dir/applications/$vendor/$app" ]; then
+        file_path="$dir/applications/$vendor/$app"
+      elif [ -r "$dir/applnk/$vendor/$app" ]; then
+        file_path="$dir/applnk/$vendor/$app"
+      fi
+    }
+
+    [ -z "$file_path" ] && {
+      for indir in "$dir"/applications/ "$dir"/applications/*/ "$dir"/applnk/ "$dir"/applnk/*/; do
+        file="$indir/$desktop"
+        [ -r "$file" ] && {
+          file_path="$file"
+          break
+        }
+      done
+    }
+
+    [ -r "$file_path" ] && {
+      # Remove any arguments (%F, %f, %U, %u, etc.).
+      command="$(grep -E "^Exec(\[[^]=]*])?=" "$file_path" | cut -d= -f 2- | first_word)"
+      command="$(command -v "$command")"
+      readlink -f "$(unoption_path "$command")"
+      return
+    }
+  done
+}
+
+xdg_mime_search_desktop_file() {
+  mime="$1" dir="$2"
+
+  grep -l "$mime;" "${dir}/"*.desktop 2>/dev/null
+
+  for f in "$dir/"*/; do
+    [ -d "$f" ] && xdg_mime_search_desktop_file "$mime" "$f"
+  done
+}
+
+check_mimeapps_list() {
+  mime="$1" dir="$2"
+
+  mimeapps_list="${dir}/mimeapps.list"
+
+  [ -f "$mimeapps_list" ] && {
+    result="$(
+      awk -v mimetype="$mime" '
+BEGIN {
+  prefix=mimetype "="
+  indefault=0
+  found=0
+}
+{
+  if (index($0, "[Default Applications]") == 1) {
+    indefault=1
+  } else if (index($0, "[") == 1) {
+    indefault=0
+  } else if (!found && indefault && index($0, prefix) == 1) {
+    print substr($0, length(prefix) +1, length())
+    found=1
+  }
+}
+' "$mimeapps_list"
+    )"
+
+    [ "$result" ] && {
+      # $result could be a ; separated list of .desktop files
+      # use the first on the system
+      IFS_="$IFS" IFS=\;
+      for app in $result; do
+        IFS="$IFS_"
+        [ "$(desktop_file_to_binary "$app")" ] && {
+          echo "$app"
+          return "0"
+        }
+      done
+    }
+  }
+
+  return "1"
+}
+
+defapp() {
+  mime="$1"
+
+  case "$mime" in
+    */*)
+      # Ok
+    ;;
+    *)
+      return "1"
+    ;;
+  esac
+
+  xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+  xdg_config_dirs="${XDG_CONFIG_DIRS:-/etc/xdg}"
+  xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
+  xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
+
+  IFS_="$IFS" IFS=:
+  for dir in $xdg_config_home $xdg_config_dirs; do
+    IFS="$IFS_"
+    check_mimeapps_list "$mime" "$dir" && return "0"
+  done
+
+  IFS=:
+  for dir in $xdg_user_dir $xdg_system_dirs; do
+    IFS="$IFS_"
+    check_mimeapps_list "$mime" "$dir/applications" && return "0"
+  done
+
+  IFS=:
+  for dir in $xdg_user_dir $xdg_system_dirs; do
+    IFS="$IFS_"
+
+    trader_result="$(
+      grep "${mime}=" "${dir}/applications/defaults.list" "${dir}/applications/mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
+    )"
+
+    [ "$trader_result" ] && {
+      echo "$trader_result"
+      return "0"
+    }
+  done
+
+  preference="-1" desktop_file=""
+
+  IFS_="$IFS" IFS=:
+  for dir in $xdg_user_dir $xdg_system_dirs; do
+    IFS="$IFS_"
+    for x in $(xdg_mime_search_desktop_file "$mime" "${dir}/applications") ; do
+      pref="0$(awk -F"=" '/InitialPreference=/ {print($2)}' "$x")"
+
+      [ "$pref" -gt "$preference" ] && preference="$pref" desktop_file="$x"
+    done
+  done
+
+  [ "$desktop_file" ] && basename "$desktop_file"
+
+  return "0"
+}
+
 # Get the value of a key in a desktop file's Desktop Entry group.
 # Example: use get_key foo.desktop Exec to get the values of the Exec= key for the Desktop Entry group.
 get_key() {
@@ -185,10 +344,7 @@ file_url_to_path() {
 # Recursively search .desktop file.
 # $1: Application, $2: Directory, $3: Target file, $4: Target URL
 search_desktop_file() {
-  default="$1"
-  dir="$2"
-  target="$3"
-  target_uri="$4"
+  default="$1" dir="$2" target="$3" target_uri="$4"
 
   file=""
 
@@ -219,8 +375,8 @@ search_desktop_file() {
       # We need to replace any occurrence of "%f", "%F" and the like by the target file.
       # We examine each argument and append the modified argument to the end then shift.
 
-      args="$#"
-      replaced="0"
+      args="$#" replaced="0"
+
       while [ $args -gt 0 ]; do
         case $1 in
           %[c])
@@ -272,8 +428,9 @@ search_desktop_file() {
 
 # $1: File (or empty), $2: MIME type, $3: URL (optional)
 open_xdg_mime() {
-  filetype="$2"
-  default="$(xdg-mime query default "$filetype")"
+  mime="$2"
+
+  default="$(defapp "$mime")"
 
   [ "$default" ] && {
     search_dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
@@ -295,19 +452,19 @@ open_xdg_mime() {
   [ ! -e "$file" ] && exit "2"
   [ ! -r "$file" ] && exit "5"
 
-  filetype="$(xdg-mime query filetype "$file" | sed "s/;.*//")"
+  mime="$(/usr/bin/file --brief --dereference --mime-type "$(readlink -f "$(unoption_path "$1")")" 2> /dev/null | sed "s/;.*//")"
 
   # Passing a path as a URL is okay too, see desktop file specification for '%u'.
   # https://specifications.freedesktop.org/desktop-entry-spec/latest/exec-variables.html
-  open_xdg_mime "$file" "$filetype" "$url"
+  open_xdg_mime "$file" "$mime" "$url"
 }
 
 # Has a URL scheme.
-scheme="$(echo "$1" | LC_ALL=C sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
+scheme="$(echo "$url" | LC_ALL=C sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
 
 [ "$scheme" ] && {
-  filetype="x-scheme-handler/$scheme"
-  open_xdg_mime "" "$filetype" "$url"
+  mime="x-scheme-handler/$scheme"
+  open_xdg_mime "" "$mime" "$url"
 }
 
 exit "3"
