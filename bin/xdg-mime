@@ -773,22 +773,23 @@ done
 
 [ -z "$filename" ] && exit_failure_syntax "mimetypes-file argument missing"
 
-[ "$vendor" =  "true" ] && [ "$action" = "install" ] && check_vendor_prefix "$filename"
+[ "$vendor" = "true" ] && [ "$action" = "install" ] && check_vendor_prefix "$filename"
 
 xdg_dir_name="mime/packages/"
 xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}/$xdg_dir_name"
 xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
-old_ifs="$IFS"
-IFS=:
+IFS_="$IFS" IFS=:
 for x in $xdg_system_dirs ; do
-  IFS="$old_ifs"
-  if [ -w "$x/$xdg_dir_name" ] ; then
+  IFS="$IFS_"
+  [ -w "$x/$xdg_dir_name" ] && {
     xdg_global_dir="$x/$xdg_dir_name"
     break
-  fi
+  }
 done
+
 [ -w "$xdg_global_dir" ] || xdg_global_dir=
+
 DEBUG 3 "xdg_user_dir: $xdg_user_dir"
 DEBUG 3 "xdg_global_dir: $xdg_global_dir"
 
