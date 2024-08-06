@@ -117,6 +117,17 @@ last_word() {
   read first rest; echo "$rest"
 }
 
+# Prefixes a path with a "./" if it starts with a "-".
+# This is useful for programs to not confuse paths with options.
+unoption_path() {
+  case "$1" in
+  -*)
+    printf "./%s" "$1" ;;
+  *)
+    printf "%s" "$1" ;;
+  esac
+}
+
 # Get the value of a key in a desktop file's Desktop Entry group.
 # Example: use get_key foo.desktop Exec to get the values of the Exec= key for the Desktop Entry group.
 get_key() {
@@ -154,7 +165,7 @@ file_url_to_path() {
     file=${file#file://}
 
     ! echo "$file" | grep -q '^/' && {
-      readlink -f "$file"
+      readlink -f "$(unoption_path "$file")"
       return
     }
 
@@ -166,7 +177,7 @@ file_url_to_path() {
     file=$($printf "$(echo "$file" | sed -e 's@%\([a-f0-9A-F]\{2\}\)@\\x\1@g')")
   }
 
-  readlink -f "$file"
+  readlink -f "$(unoption_path "$file")"
 }
 
 # Recursively search .desktop file.
