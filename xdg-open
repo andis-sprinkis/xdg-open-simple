@@ -399,7 +399,7 @@ echo "$url" | grep -q '^file://' && is_file_url="1"
 echo "$url" | LC_ALL="C" grep -Eq '^[[:alpha:]][[:alpha:][:digit:]+\.\-]*:' && has_url_scheme="1"
 
 # Is a file URL or doesn't have a URL scheme.
-{ [ "$is_file_url" = "1" ] || [ "$has_url_scheme" != "1" ]; } && {
+{ [ "$is_file_url" = "1" ] || [ "$has_url_scheme" = "0" ]; } && {
   file="$url" 
 
   # Convert file URL to a percent-decoded path.
