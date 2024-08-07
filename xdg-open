@@ -175,6 +175,7 @@ desktop_file_to_binary() {
   done
 }
 
+# $1: MIME, $2: directory
 xdg_mime_search_desktop_file() {
   mime="$1" dir="$2"
 
@@ -276,7 +277,7 @@ defapp() {
   IFS_="$IFS" IFS=:
   for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
-    for x in $(xdg_mime_search_desktop_file "$mime" "${dir}/applications") ; do
+    for x in $(xdg_mime_search_desktop_file "$mime" "${dir}/applications"); do
       pref="0$(awk -F"=" '/InitialPreference=/ {print($2)}' "$x")"
 
       [ "$pref" -gt "$preference" ] && preference="$pref" desktop_file="$x"
@@ -291,8 +292,9 @@ defapp() {
 # Get the value of a key in a desktop file's Desktop Entry group.
 # Example: use get_key foo.desktop Exec to get the values of the Exec= key for the Desktop Entry group.
 get_key() {
-  file="$1" key="$2" desktop_entry=""
+  file="$1" key="$2"
 
+  desktop_entry=""
   # No backslash handling here, first_word and last_word do that.
   IFS_="$IFS" IFS=""
   while read -r line; do
@@ -307,6 +309,7 @@ get_key() {
       "${key}="*)
         # Only match Desktop Entry group
         [ "$desktop_entry" ] && echo "$line" | cut -d= -f 2-
+      ;;
     esac
   done < "$file"
   IFS="$IFS_"
@@ -341,16 +344,10 @@ search_desktop_file() {
   default="$1" dir="$2" target="$3" target_uri="$4"
 
   file=""
-
   # Look for: vendor/app.desktop, vendor-app.desktop
-  fpath_slash="${dir}/${default}"
-  fpath_dash="${dir}/$(echo "$default" | sed -e 's|-|/|')"
-
-  if [ -r "$fpath_slash" ]; then
-    file="$fpath_slash"
-  elif [ -r "$fpath_dash" ]; then
-    file="$fpath_dash"
-  fi
+  for fp in "${dir}/${default}" "${dir}/$(echo "$default" | sed -e 's|-|/|')"; do
+    [ -r "$fp" ] && { file="$fp"; break; }
+  done
 
   [ "$file" ] && {
     command="$(get_key "$file" "Exec" | first_word)"
@@ -419,9 +416,7 @@ search_desktop_file() {
 
 # $1: File (or empty), $2: MIME type, $3: URL (optional)
 open_xdg_mime() {
-  mime="$2"
-
-  default="$(defapp "$mime")"
+  default="$(defapp "$2")"
 
   [ "$default" ] && {
     search_dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
@@ -429,6 +424,7 @@ open_xdg_mime() {
     IFS_="$IFS" IFS=:
     for dir in $search_dirs ; do
       IFS="$IFS_"
+
       search_desktop_file "$default" "${dir}/applications/" "$1" "$3"
     done
   }
