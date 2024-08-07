@@ -135,42 +135,38 @@ unoption_path() {
 
 # Map a .desktop file to a binary
 desktop_file_to_binary() {
-  search="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
   desktop="$(basename "$1")"
+  dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
 
   IFS_="$IFS" IFS=:
-  for dir in $search; do
+  for dir in $dirs; do
     IFS="$IFS_"
 
     [ "$dir" ] && [ -d "${dir}/applications" ] || [ -d "${dir}/applnk" ] || continue
 
     # Check if desktop file contains -
+    file_path=""
     [ "${desktop#*-}" != "$desktop" ] && {
       vendor="${desktop%-*}" app="${desktop#*-}"
 
-      if [ -r "${dir}/applications/${vendor}/${app}" ]; then
-        file_path="${dir}/applications/${vendor}/${app}"
-      elif [ -r "${dir}/applnk/${vendor}/${app}" ]; then
-        file_path="${dir}/applnk/${vendor}/${app}"
-      fi
+      for fp in "${dir}/applications/${vendor}/${app}" "${dir}/applnk/${vendor}/${app}"; do
+        [ -r "$fp" ] && { file_path="$fp"; break; }
+      done
     }
 
     [ -z "$file_path" ] && {
       for indir in "${dir}/applications/" "${dir}/applications/"*/ "${dir}/applnk/" "${dir}/applnk/"*/; do
-        file="$indir/$desktop"
-        [ -r "$file" ] && {
-          file_path="$file"
-          break
-        }
+        file="${indir}/${desktop}"
+        [ -r "$file" ] && { file_path="$file"; break; }
       done
     }
 
-    [ -r "$file_path" ] && {
+    [ "$file_path" ] && {
       # Remove any arguments (%F, %f, %U, %u, etc.).
       command="$(grep -E "^Exec(\[[^]=]*])?=" "$file_path" | cut -d= -f 2- | first_word)"
       command="$(command -v "$command")"
       readlink -f "$(unoption_path "$command")"
-      return "0"
+      break
     }
   done
 }
@@ -218,10 +214,7 @@ BEGIN {
       IFS_="$IFS" IFS=\;
       for app in $result; do
         IFS="$IFS_"
-        [ "$(desktop_file_to_binary "$app")" ] && {
-          echo "$app"
-          return "0"
-        }
+        [ "$(desktop_file_to_binary "$app")" ] && { echo "$app"; return "0"; }
       done
     }
   }
@@ -266,9 +259,7 @@ defapp() {
       grep "${mime}=" "${dir}/applications/defaults.list" "${dir}/applications/mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
     )"
 
-    [ "$result" ] && {
-      echo "$result"; return "0"
-    }
+    [ "$result" ] && { echo "$result"; return "0"; }
   done
 
   preference="-1" desktop_file=""
@@ -326,7 +317,7 @@ file_url_to_path() {
 
     ! echo "$file" | grep -q '^/' && {
       readlink -f "$(unoption_path "$file")"
-      return
+      return "0"
     }
 
     file="${file%%#*}"
@@ -342,8 +333,8 @@ file_url_to_path() {
 search_desktop_file() {
   default="$1" dir="$2" target="$3" target_uri="$4"
 
-  file=""
   # Look for: vendor/app.desktop, vendor-app.desktop
+  file=""
   for fp in "${dir}/${default}" "${dir}/$(echo "$default" | sed -e 's|-|/|')"; do
     [ -r "$fp" ] && { file="$fp"; break; }
   done
