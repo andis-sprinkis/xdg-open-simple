@@ -39,7 +39,7 @@ ln -s "../opt/xdg-open-simple/xdg-open" "xdg-open"
 
 ## How-to's
 
-Tips for dealing with Linux file-type vs. application associations. Not specific to this project itself - will work with the stock `xdg-utils` too.
+Tips for dealing with the Linux file-type vs. application associations. Not specific to this project itself - will work with the stock `xdg-utils` too.
 
 ### Setting the user default file and URL associations
 
