@@ -256,6 +256,7 @@ defapp() {
   done
 
   desktop_file=""
+
   IFS=:
   for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
@@ -267,7 +268,8 @@ defapp() {
     [ "$desktop_file" ] && { echo "$desktop_file"; return "0"; }
   done
 
-  preference="-1" desktop_file=""
+  preference="-1"
+
   IFS=:
   for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
@@ -321,61 +323,61 @@ search_desktop_file() {
   [ "$file" ] && {
     command="$(get_key "$file" "Exec" | first_word)"
 
-    command -v "$command" > "/dev/null" && {
-      icon="$(get_key "$file" "Icon")"
+    command -v "$command" > "/dev/null" || return
 
-      # FIXME: Actually LC_MESSAGES should be used as described in
-      # http://standards.freedesktop.org/desktop-entry-spec/latest/ar01s04.html
-      localised_name="$(get_key "$file" "Name")"
+    icon="$(get_key "$file" "Icon")"
 
-      # shellcheck disable=SC2046
-      set -- $(get_key "$file" "Exec" | last_word)
+    # FIXME: Actually LC_MESSAGES should be used as described in
+    # http://standards.freedesktop.org/desktop-entry-spec/latest/ar01s04.html
+    localised_name="$(get_key "$file" "Name")"
 
-      # We need to replace any occurrence of "%f", "%F" and the like by the target file.
-      # We examine each argument and append the modified argument to the end then shift.
+    # shellcheck disable=SC2046
+    set -- $(get_key "$file" "Exec" | last_word)
 
-      args="$#" replaced="0"
+    # We need to replace any occurrence of "%f", "%F" and the like by the target file.
+    # We examine each argument and append the modified argument to the end then shift.
 
-      while [ "$args" -gt "0" ]; do
-        case $1 in
-          %[c])
-            replaced="1" arg="$localised_name"
-            shift
-            set -- "$@" "$arg"
-          ;;
-          %[fF])
-            # If there is only a target_url - return - this application can't handle it.
-            [ "$target" ] || return
-            replaced="1" arg="$target"
-            shift
-            set -- "$@" "$arg"
-          ;;
-          %[uU])
-            replaced="1"
-            # When an URI is requested use it, otherwise fall back to the filepath.
-            arg="${target_uri:-$target}"
-            shift
-            set -- "$@" "$arg"
-          ;;
-          %[i])
-            replaced="1"
-            shift
-            set -- "$@" "--icon" "$icon"
-          ;;
-          *)
-            arg="$1"
-            shift
-            set -- "$@" "$arg"
-          ;;
-        esac
-        args="$((args - 1))"
-      done
+    args="$#" replaced="0"
 
-      [ "$replaced" = "1" ] || set -- "$@" "${target:-$target_uri}"
+    while [ "$args" -gt "0" ]; do
+      case $1 in
+        %[c])
+          replaced="1" arg="$localised_name"
+          shift
+          set -- "$@" "$arg"
+        ;;
+        %[fF])
+          # If there is only a target_url - return - this application can't handle it.
+          [ "$target" ] || return
+          replaced="1" arg="$target"
+          shift
+          set -- "$@" "$arg"
+        ;;
+        %[uU])
+          replaced="1"
+          # When an URI is requested use it, otherwise fall back to the filepath.
+          arg="${target_uri:-$target}"
+          shift
+          set -- "$@" "$arg"
+        ;;
+        %[i])
+          replaced="1"
+          shift
+          set -- "$@" "--icon" "$icon"
+        ;;
+        *)
+          arg="$1"
+          shift
+          set -- "$@" "$arg"
+        ;;
+      esac
+      args="$((args - 1))"
+    done
 
-      env "$command" "$@"
-      exit "0"
-    }
+    [ "$replaced" = "1" ] || set -- "$@" "${target:-$target_uri}"
+
+    env "$command" "$@"
+    exit "0"
   }
 
   for d in "${dir}/"*/; do
@@ -383,27 +385,11 @@ search_desktop_file() {
   done
 }
 
-# $1: File (or empty), $2: MIME type, $3: URL (optional)
-open_xdg_mime() {
-  default="$(defapp "$2")"
-
-  [ "$default" ] && {
-    dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
-
-    IFS_="$IFS" IFS=:
-    for dir in $dirs; do
-      IFS="$IFS_"
-      search_desktop_file "$default" "${dir}/applications/" "$1" "$3"
-    done
-  }
-}
-
-is_file_url="0" has_url_scheme="0"
+is_file_url="0" has_url_scheme="0" file="" scheme="" mime="" default=""
 echo "$url" | grep -q '^file://' && is_file_url="1"
 echo "$url" | LC_ALL="C" grep -Eq '^[[:alpha:]][[:alpha:][:digit:]+\.\-]*:' && has_url_scheme="1"
 
-# Is a file URL or doesn't have a URL scheme.
-{ [ "$is_file_url" = "1" ] || [ "$has_url_scheme" = "0" ]; } && {
+if [ "$is_file_url" = "1" ] || [ "$has_url_scheme" = "0" ]; then
   file="$url" 
 
   # Convert file URL to a percent-decoded path.
@@ -424,14 +410,24 @@ echo "$url" | LC_ALL="C" grep -Eq '^[[:alpha:]][[:alpha:][:digit:]+\.\-]*:' && h
   [ ! -e "$file" ] && exit "2"
   [ ! -r "$file" ] && exit "5"
 
-  # Passing a path as a URL is okay too, see desktop file specification for '%u'.
-  # https://specifications.freedesktop.org/desktop-entry-spec/latest/exec-variables.html
-  open_xdg_mime "$file" "$(file --brief --dereference --mime-type "$file" 2> /dev/null | sed "s/;.*//")" "$url"
+  mime="$(file --brief --dereference --mime-type "$file" 2> /dev/null | sed "s/;.*//")"
+else
+  scheme="$(echo "$url" | LC_ALL=C sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
+
+  [ "$scheme" ] && mime="x-scheme-handler/${scheme}"
+fi
+
+
+[ "$mime" ] && default="$(defapp "$mime")"
+
+[ "$default" ] && {
+  dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
+
+  IFS_="$IFS" IFS=:
+  for dir in $dirs; do
+    IFS="$IFS_"
+    search_desktop_file "$default" "${dir}/applications/" "$file" "$url"
+  done
 }
-
-# Has a URL scheme.
-scheme="$(echo "$url" | LC_ALL=C sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
-
-[ "$scheme" ] && open_xdg_mime "" "x-scheme-handler/${scheme}" "$url"
 
 exit "3"
