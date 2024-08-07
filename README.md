@@ -31,9 +31,15 @@ cd "$HOME/.local/bin"
 ln -s "../opt/xdg-open-simple/xdg-open" "xdg-open"
 ```
 
+## Resources
+
+-   [xdg / xdg-utils · GitLab](https://gitlab.freedesktop.org/xdg/xdg-utils)
+
+---
+
 ## How-to's
 
-These tips are not specific to this project, will work with the stock `xdg-utils` too.
+Tips that are not specific to this project and will work with the stock `xdg-utils` too.
 
 ### Setting the user default file and URL associations
 
@@ -94,7 +100,3 @@ echo > "$HOME/.mozilla/firefox/PROIFLE.default-release/handlers.json'
 ```
 
 This clears the `handlers.json` file, which removes the downloaded file custom handlers configured in Firefox.
-
-## Resources
-
--   [xdg / xdg-utils · GitLab](https://gitlab.freedesktop.org/xdg/xdg-utils)
