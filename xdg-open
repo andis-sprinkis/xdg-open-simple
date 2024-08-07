@@ -318,22 +318,18 @@ file_url_to_path() {
   file="$1"
 
   echo "$file" | grep -q '^file://' && {
-    file=${file#file://localhost}
-    hostname="$(uname -n)"
-    file=${file#file://"$hostname"}
-    file=${file#file://}
+    file="${file#file://localhost}"
+    file="${file#file://"$(uname -n)"}"
+    file="${file#file://}"
 
     ! echo "$file" | grep -q '^/' && {
       readlink -f "$(unoption_path "$file")"
       return
     }
 
-    file=${file%%#*}
-    file=${file%%\?*}
-
-    printf="printf"
-    [ -x "/usr/bin/printf" ] && printf="/usr/bin/printf"
-    file=$($printf "$(echo "$file" | sed -e 's@%\([a-f0-9A-F]\{2\}\)@\\x\1@g')")
+    file="${file%%#*}"
+    file="${file%%\?*}"
+    file="$(echo "$file" | sed -e 's@%\([a-f0-9A-F]\{2\}\)@\\x\1@g')"
   }
 
   readlink -f "$(unoption_path "$file")"
