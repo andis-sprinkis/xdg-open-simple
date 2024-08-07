@@ -184,11 +184,9 @@ get_key() {
         is_tgt_group="1"
       ;;
       "["*)
-        # Reset match flag for other groups
         is_tgt_group="0"
       ;;
       "${key}="*)
-        # Only match $group
         [ "$is_tgt_group" = "1" ] && {
           result="$(echo "$line" | cut -d= -f 2-)"
           [ "$result" ] && {
