@@ -360,7 +360,6 @@ search_desktop_file() {
 
       # FIXME: Actually LC_MESSAGES should be used as described in
       # http://standards.freedesktop.org/desktop-entry-spec/latest/ar01s04.html
-
       localised_name="$(get_key "$file" "Name")"
 
       # shellcheck disable=SC2046
@@ -403,14 +402,12 @@ search_desktop_file() {
             set -- "$@" "$arg"
           ;;
         esac
-
-        args=$(( args - 1 ))
+        args="$((args - 1))"
       done
 
       [ "$replaced" = "1" ] || set -- "$@" "${target:-$target_uri}"
 
       env "$command" "$@"
-
       exit "0"
     }
   }
