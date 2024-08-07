@@ -144,8 +144,9 @@ desktop_file_to_binary() {
 
     [ "$dir" ] && [ -d "${dir}/applications" ] || [ -d "${dir}/applnk" ] || continue
 
-    # Check if desktop file contains -
     file_path=""
+
+    # Check if desktop file contains -
     [ "${desktop#*-}" != "$desktop" ] && {
       vendor="${desktop%-*}" app="${desktop#*-}"
 
@@ -216,6 +217,7 @@ BEGIN {
         IFS="$IFS_"
         [ "$(desktop_file_to_binary "$app")" ] && { echo "$app"; return "0"; }
       done
+      IFS="$IFS_"
     }
   }
 
@@ -239,7 +241,9 @@ defapp() {
   xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
   xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
-  IFS_="$IFS" IFS=:
+  IFS_="$IFS"
+
+  IFS=:
   for dir in $xdg_config_home $xdg_config_dirs; do
     IFS="$IFS_"
     check_mimeapps_list "$mime" "$dir" && return "0"
@@ -251,20 +255,20 @@ defapp() {
     check_mimeapps_list "$mime" "${dir}/applications" && return "0"
   done
 
+  desktop_file=""
   IFS=:
   for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
 
-    result="$(
+    desktop_file="$(
       grep "${mime}=" "${dir}/applications/defaults.list" "${dir}/applications/mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
     )"
 
-    [ "$result" ] && { echo "$result"; return "0"; }
+    [ "$desktop_file" ] && { echo "$desktop_file"; return "0"; }
   done
 
   preference="-1" desktop_file=""
-
-  IFS_="$IFS" IFS=:
+  IFS=:
   for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
     for x in $(xdg_mime_search_desktop_file "$mime" "${dir}/applications"); do
