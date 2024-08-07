@@ -417,7 +417,6 @@ else
   [ "$scheme" ] && mime="x-scheme-handler/${scheme}"
 fi
 
-
 [ "$mime" ] && default="$(defapp "$mime")"
 
 [ "$default" ] && {
