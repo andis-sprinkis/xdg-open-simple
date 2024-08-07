@@ -262,13 +262,12 @@ defapp() {
   for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
 
-    trader_result="$(
+    result="$(
       grep "${mime}=" "${dir}/applications/defaults.list" "${dir}/applications/mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
     )"
 
-    [ "$trader_result" ] && {
-      echo "$trader_result"
-      return "0"
+    [ "$result" ] && {
+      echo "$result"; return "0"
     }
   done
 
@@ -419,12 +418,11 @@ open_xdg_mime() {
   default="$(defapp "$2")"
 
   [ "$default" ] && {
-    search_dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
+    dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
     IFS_="$IFS" IFS=:
-    for dir in $search_dirs ; do
+    for dir in $dirs; do
       IFS="$IFS_"
-
       search_desktop_file "$default" "${dir}/applications/" "$1" "$3"
     done
   }
