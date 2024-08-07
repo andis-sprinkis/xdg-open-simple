@@ -49,6 +49,7 @@ Tips for dealing with Linux file-type vs. application associations. Not specific
 [Default Applications]
 x-scheme-handler/msteams=Teams.desktop
 video/mp4=video.desktop
+...
 ```
 
 -   [Association between MIME types and applications](https://specifications.freedesktop.org/mime-apps-spec/latest/)
