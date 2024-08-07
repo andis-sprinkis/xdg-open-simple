@@ -282,21 +282,21 @@ defapp() {
 get_key() {
   file="$1" key="$2"
 
-  desktop_entry=""
   # No backslash handling here, first_word and last_word do that.
+  is_desktop_entry="0"
   IFS_="$IFS" IFS=""
   while read -r line; do
     case "$line" in
       "[Desktop Entry]")
-        desktop_entry="y"
+        is_desktop_entry="1"
       ;;
-      # Reset match flag for other groups
       "["*)
-        desktop_entry=""
+        # Reset match flag for other groups
+        is_desktop_entry="0"
       ;;
       "${key}="*)
         # Only match Desktop Entry group
-        [ "$desktop_entry" ] && echo "$line" | cut -d= -f 2-
+        [ "$is_desktop_entry" = "1" ] && echo "$line" | cut -d= -f 2-
       ;;
     esac
   done < "$file"
