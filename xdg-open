@@ -138,25 +138,25 @@ desktop_file_to_binary() {
   search="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
   desktop="$(basename "$1")"
 
-  IFS=:
+  IFS_="$IFS" IFS=:
   for dir in $search; do
-    unset IFS
+    IFS="$IFS_"
 
-    [ "$dir" ] && [ -d "$dir/applications" ] || [ -d "$dir/applnk" ] || continue
+    [ "$dir" ] && [ -d "${dir}/applications" ] || [ -d "${dir}/applnk" ] || continue
 
     # Check if desktop file contains -
     [ "${desktop#*-}" != "$desktop" ] && {
       vendor="${desktop%-*}" app="${desktop#*-}"
 
-      if [ -r "$dir/applications/$vendor/$app" ]; then
-        file_path="$dir/applications/$vendor/$app"
-      elif [ -r "$dir/applnk/$vendor/$app" ]; then
-        file_path="$dir/applnk/$vendor/$app"
+      if [ -r "${dir}/applications/${vendor}/${app}" ]; then
+        file_path="${dir}/applications/${vendor}/${app}"
+      elif [ -r "${dir}/applnk/${vendor}/${app}" ]; then
+        file_path="${dir}/applnk/${vendor}/${app}"
       fi
     }
 
     [ -z "$file_path" ] && {
-      for indir in "$dir"/applications/ "$dir"/applications/*/ "$dir"/applnk/ "$dir"/applnk/*/; do
+      for indir in "${dir}/applications/" "${dir}/applications/"*/ "${dir}/applnk/" "${dir}/applnk/"*/; do
         file="$indir/$desktop"
         [ -r "$file" ] && {
           file_path="$file"
@@ -170,7 +170,7 @@ desktop_file_to_binary() {
       command="$(grep -E "^Exec(\[[^]=]*])?=" "$file_path" | cut -d= -f 2- | first_word)"
       command="$(command -v "$command")"
       readlink -f "$(unoption_path "$command")"
-      return
+      return "0"
     }
   done
 }
@@ -178,9 +178,9 @@ desktop_file_to_binary() {
 xdg_mime_search_desktop_file() {
   mime="$1" dir="$2"
 
-  grep -l "$mime;" "${dir}/"*.desktop 2>/dev/null
+  grep -l "${mime};" "${dir}/"*.desktop 2>/dev/null
 
-  for f in "$dir/"*/; do
+  for f in "${dir}/"*/; do
     [ -d "$f" ] && xdg_mime_search_desktop_file "$mime" "$f"
   done
 }
@@ -254,7 +254,7 @@ defapp() {
   IFS=:
   for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
-    check_mimeapps_list "$mime" "$dir/applications" && return "0"
+    check_mimeapps_list "$mime" "${dir}/applications" && return "0"
   done
 
   IFS=:
@@ -371,37 +371,37 @@ search_desktop_file() {
 
       args="$#" replaced="0"
 
-      while [ $args -gt 0 ]; do
+      while [ "$args" -gt "0" ]; do
         case $1 in
           %[c])
             replaced="1" arg="$localised_name"
             shift
             set -- "$@" "$arg"
-            ;;
+          ;;
           %[fF])
             # If there is only a target_url - return - this application can't handle it.
             [ "$target" ] || return
             replaced="1" arg="$target"
             shift
             set -- "$@" "$arg"
-            ;;
+          ;;
           %[uU])
             replaced="1"
             # When an URI is requested use it, otherwise fall back to the filepath.
             arg="${target_uri:-$target}"
             shift
             set -- "$@" "$arg"
-            ;;
+          ;;
           %[i])
             replaced="1"
             shift
             set -- "$@" "--icon" "$icon"
-            ;;
+          ;;
           *)
             arg="$1"
             shift
             set -- "$@" "$arg"
-            ;;
+          ;;
         esac
 
         args=$(( args - 1 ))
