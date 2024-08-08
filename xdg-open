@@ -89,9 +89,7 @@ EXAMPLES
         Opens the PNG image file /tmp/foobar.png in the user's default image viewing application.
 "
 
-exit_err_cmd_syntax() {
-  echo "$help_info" 1>&2; exit "1"
-}
+exit_err_cmd_syntax() { echo "$help_info" 1>&2; exit "1"; }
 
 while getopts :h name; do
   case "$name" in
@@ -110,15 +108,11 @@ url="$1"
 
 # The first_word, last_word functions handle backslashes, but not quote marks.
 
-first_word() {
-  # shellcheck disable=SC2162
-  read first rest; echo "$first"
-}
+# shellcheck disable=SC2162
+first_word() { read first rest; echo "$first"; }
 
-last_word() {
-  # shellcheck disable=SC2162
-  read first rest; echo "$rest"
-}
+# shellcheck disable=SC2162
+last_word() { read first rest; echo "$rest"; }
 
 # Prefixes a path with a "./" if it starts with a "-".
 # This is useful for programs to not confuse paths with options.
