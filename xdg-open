@@ -354,8 +354,7 @@ search_desktop_file() {
 
   [ "$replaced" = "1" ] || set -- "$@" "${target:-$target_uri}"
 
-  env "$command" "$@"
-  exit "0"
+  env "$command" "$@"; exit "0"
 }
 
 is_file_url="0" has_url_scheme="0" file="" scheme="" mime="" default=""
