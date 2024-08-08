@@ -6,12 +6,12 @@ A fork of the original `xdg-open` (and `xdg-mime`) scripts from the `xdg-utils`.
 
 Notable properties of this fork are:
 
--   [x] A lot more concise than the original `xdg-open`.
 -   [x] Relies solely on the `.desktop`, `mimeapps.list` files information for opening files and URIs.
 -   [x] Doesn't auto-forward paths without a known handler to a web browser.
 -   [x] Doesn't auto-forward paths to any other or DE-specific file opener.
 -   [x] Has no dependency on the `xdg-utils` scripts.
 -   [x] Handles the relative file paths.
+-   [x] A lot more concise than the original `xdg-open`.
 
 ## Installation
 
