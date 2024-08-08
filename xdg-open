@@ -208,11 +208,11 @@ check_mimeapps_list() {
 
   fpath_mimeapps="${dir}/mimeapps.list"
 
-  [ ! -f "$fpath_mimeapps" ] && return "1"
+  [ -f "$fpath_mimeapps" ] || return "1"
 
   result="$(get_key "$fpath_mimeapps" "$mime" "Default Applications" "1")"
 
-  [ -z "$result" ] && return "1"
+  [ "$result" ] || return "1"
 
   # $result could be a ";" separated list of .desktop files. Uses the first one.
   IFS_="$IFS" IFS=\;
