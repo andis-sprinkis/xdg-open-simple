@@ -363,6 +363,7 @@ search_desktop_file() {
 }
 
 is_file_url="0" has_url_scheme="0" file="" scheme="" mime="" default=""
+
 echo "$url" | grep -q '^file://' && is_file_url="1"
 echo "$url" | LC_ALL="C" grep -Eq '^[[:alpha:]][[:alpha:][:digit:]+\.\-]*:' && has_url_scheme="1"
 
