@@ -295,69 +295,67 @@ search_desktop_file() {
     [ -r "$fp" ] && { file="$fp"; break; }
   done
 
-  [ "$file" ] && {
-    command="$(get_key "$file" "Exec" "Desktop Entry" | first_word)"
-
-    command -v "$command" > "/dev/null" || return
-
-    icon="$(get_key "$file" "Icon" "Desktop Entry")"
-
-    # FIXME: Actually LC_MESSAGES should be used as described in
-    # http://standards.freedesktop.org/desktop-entry-spec/latest/ar01s04.html
-    localised_name="$(get_key "$file" "Name" "Desktop Entry")"
-
-    # shellcheck disable=SC2046
-    set -- $(get_key "$file" "Exec" "Desktop Entry" | last_word)
-
-    # We need to replace any occurrence of "%f", "%F" and the like by the target file.
-    # We examine each argument and append the modified argument to the end then shift.
-
-    args="$#" replaced="0"
-
-    while [ "$args" -gt "0" ]; do
-      case $1 in
-        %[c])
-          replaced="1" arg="$localised_name"
-          shift
-          set -- "$@" "$arg"
-        ;;
-        %[fF])
-          # If there is only a target_url - return - this application can't handle it.
-          [ "$target" ] || return
-          replaced="1" arg="$target"
-          shift
-          set -- "$@" "$arg"
-        ;;
-        %[uU])
-          replaced="1"
-          # When an URI is requested use it, otherwise fall back to the filepath.
-          arg="${target_uri:-$target}"
-          shift
-          set -- "$@" "$arg"
-        ;;
-        %[i])
-          replaced="1"
-          shift
-          set -- "$@" "--icon" "$icon"
-        ;;
-        *)
-          arg="$1"
-          shift
-          set -- "$@" "$arg"
-        ;;
-      esac
-      args="$((args - 1))"
-    done
-
-    [ "$replaced" = "1" ] || set -- "$@" "${target:-$target_uri}"
-
-    env "$command" "$@"
-    exit "0"
+  [ "$file" ] || {
+    for d in "${dir}/"*/; do [ -d "$d" ] && search_desktop_file "$default" "$d" "$target" "$target_uri"; done
   }
 
-  for d in "${dir}/"*/; do
-    [ -d "$d" ] && search_desktop_file "$default" "$d" "$target" "$target_uri"
+  command="$(get_key "$file" "Exec" "Desktop Entry" | first_word)"
+
+  command -v "$command" > "/dev/null" || return
+
+  icon="$(get_key "$file" "Icon" "Desktop Entry")"
+
+  # FIXME: Actually LC_MESSAGES should be used as described in
+  # http://standards.freedesktop.org/desktop-entry-spec/latest/ar01s04.html
+  localised_name="$(get_key "$file" "Name" "Desktop Entry")"
+
+  # shellcheck disable=SC2046
+  set -- $(get_key "$file" "Exec" "Desktop Entry" | last_word)
+
+  # We need to replace any occurrence of "%f", "%F" and the like by the target file.
+  # We examine each argument and append the modified argument to the end then shift.
+
+  args="$#" replaced="0"
+
+  while [ "$args" -gt "0" ]; do
+    case $1 in
+      %[c])
+        replaced="1" arg="$localised_name"
+        shift
+        set -- "$@" "$arg"
+      ;;
+      %[fF])
+        # If there is only a target_url - return - this application can't handle it.
+        [ "$target" ] || return
+        replaced="1" arg="$target"
+        shift
+        set -- "$@" "$arg"
+      ;;
+      %[uU])
+        replaced="1"
+        # When an URI is requested use it, otherwise fall back to the filepath.
+        arg="${target_uri:-$target}"
+        shift
+        set -- "$@" "$arg"
+      ;;
+      %[i])
+        replaced="1"
+        shift
+        set -- "$@" "--icon" "$icon"
+      ;;
+      *)
+        arg="$1"
+        shift
+        set -- "$@" "$arg"
+      ;;
+    esac
+    args="$((args - 1))"
   done
+
+  [ "$replaced" = "1" ] || set -- "$@" "${target:-$target_uri}"
+
+  env "$command" "$@"
+  exit "0"
 }
 
 is_file_url="0" has_url_scheme="0" file="" scheme="" mime="" default=""
