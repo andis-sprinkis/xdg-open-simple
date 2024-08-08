@@ -170,7 +170,7 @@ desktop_file_to_binary() {
 get_key() {
   file="$1" key="$2" group="$3" first="${4:-0}"
 
-  is_tgt_group="0"
+  is_tgt_group="0" result=""
   IFS_="$IFS" IFS=""
   while read -r line; do
     case "$line" in
@@ -181,17 +181,15 @@ get_key() {
         is_tgt_group="0"
       ;;
       "${key}="*)
-        [ "$is_tgt_group" = "1" ] && {
-          result="$(echo "$line" | cut -d= -f 2-)"
-          [ "$result" ] && {
-            echo "$result"
-            [ "$first" = "1" ] && break
-          }
-        }
+        [ "$is_tgt_group" = "0" ] && continue
+        result="$(echo "$line" | cut -d= -f 2-)"
+        [ "$result" ] && [ "$first" = "1" ] && break
       ;;
     esac
   done < "$file"
   IFS="$IFS_"
+
+  [ "$result" ] && echo "$result"
 }
 
 # $1: MIME, $2: directory
@@ -208,21 +206,21 @@ xdg_mime_search_desktop_file() {
 check_mimeapps_list() {
   mime="$1" dir="$2"
 
-  mimeapps_list="${dir}/mimeapps.list"
+  fpath_mimeapps="${dir}/mimeapps.list"
 
-  [ -f "$mimeapps_list" ] && {
-    result="$(get_key "$mimeapps_list" "$mime" "Default Applications" "1")"
+  [ ! -f "$fpath_mimeapps" ] && return "1"
 
-    [ "$result" ] && {
-      # $result could be a ";" separated list of .desktop files. Use the first on the system.
-      IFS_="$IFS" IFS=\;
-      for app in $result; do
-        IFS="$IFS_"
-        [ "$(desktop_file_to_binary "$app")" ] && { echo "$app"; return "0"; }
-      done
-      IFS="$IFS_"
-    }
-  }
+  result="$(get_key "$fpath_mimeapps" "$mime" "Default Applications" "1")"
+
+  [ -z "$result" ] && return "1"
+
+  # $result could be a ";" separated list of .desktop files. Uses the first one.
+  IFS_="$IFS" IFS=\;
+  for app in $result; do
+    IFS="$IFS_"
+    [ "$(desktop_file_to_binary "$app")" ] && { echo "$app"; return "0"; }
+  done
+  IFS="$IFS_"
 
   return "1"
 }
