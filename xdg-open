@@ -141,7 +141,7 @@ desktop_file_to_binary() {
     file_path=""
 
     # Check if desktop file contains -
-    [ "${desktop#*-}" != "$desktop" ] && {
+    [ "${desktop#*-}" = "$desktop" ] || {
       vendor="${desktop%-*}" app="${desktop#*-}"
 
       for fp in "${dir}/applications/${vendor}/${app}" "${dir}/applnk/${vendor}/${app}"; do
@@ -149,7 +149,7 @@ desktop_file_to_binary() {
       done
     }
 
-    [ -z "$file_path" ] && {
+    [ "$file_path" ] || {
       for indir in "${dir}/applications/" "${dir}/applications/"*/ "${dir}/applnk/" "${dir}/applnk/"*/; do
         file="${indir}/${desktop}"
         [ -r "$file" ] && { file_path="$file"; break; }
