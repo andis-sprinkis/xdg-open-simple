@@ -301,10 +301,7 @@ search_desktop_file() {
     command -v "$command" > "/dev/null" || return
 
     icon="$(get_key "$file" "Icon" "Desktop Entry")"
-
-    # FIXME: Actually LC_MESSAGES should be used as described in
-    # http://standards.freedesktop.org/desktop-entry-spec/latest/ar01s04.html
-    localised_name="$(get_key "$file" "Name" "Desktop Entry")"
+    name="$(get_key "$file" "Name" "Desktop Entry")"
 
     # shellcheck disable=SC2046
     set -- $(get_key "$file" "Exec" "Desktop Entry" | last_word)
@@ -317,7 +314,7 @@ search_desktop_file() {
     while [ "$args" -gt "0" ]; do
       case $1 in
         %[c])
-          replaced="1" arg="$localised_name"
+          replaced="1" arg="$name"
           shift
           set -- "$@" "$arg"
         ;;
