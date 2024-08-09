@@ -127,13 +127,18 @@ unoption_path() {
   esac
 }
 
+# XDG directories
+xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+xdg_config_dirs="${XDG_CONFIG_DIRS:-/etc/xdg}"
+xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
+xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
+
 # Map a .desktop file to a binary
 desktop_file_to_binary() {
   desktop="$(basename "$1")"
-  dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
 
   IFS_="$IFS" IFS=:
-  for dir in $dirs; do
+  for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
 
     [ "$dir" ] && [ -d "${dir}/applications" ] || [ -d "${dir}/applnk" ] || continue
@@ -220,7 +225,6 @@ check_mimeapps_list() {
     IFS="$IFS_"
     [ "$(desktop_file_to_binary "$app")" ] && { echo "$app"; return "0"; }
   done
-  IFS="$IFS_"
 
   return "1"
 }
@@ -236,11 +240,6 @@ defapp() {
       return "1"
     ;;
   esac
-
-  xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
-  xdg_config_dirs="${XDG_CONFIG_DIRS:-/etc/xdg}"
-  xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
-  xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
   IFS_="$IFS"
 
@@ -269,7 +268,7 @@ defapp() {
     [ "$desktop_file" ] && { echo "$desktop_file"; return "0"; }
   done
 
-  preference="-1"
+  desktop_file="" preference="-1"
 
   IFS=:
   for dir in $xdg_user_dir $xdg_system_dirs; do
@@ -390,10 +389,8 @@ fi
 default="${mime:+$(defapp "$mime")}"
 
 [ "$default" ] && {
-  dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
-
   IFS_="$IFS" IFS=:
-  for dir in $dirs; do
+  for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
     search_desktop_file "$default" "${dir}/applications/" "$file" "${scheme:+$url}"
   done
