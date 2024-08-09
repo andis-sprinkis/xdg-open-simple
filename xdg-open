@@ -308,9 +308,7 @@ search_desktop_file() {
 
     # We need to replace any occurrence of "%f", "%F" and the like by the target file.
     # We examine each argument and append the modified argument to the end then shift.
-
     args="$#" replaced="0"
-
     while [ "$args" -gt "0" ]; do
       case $1 in
         %[c])
