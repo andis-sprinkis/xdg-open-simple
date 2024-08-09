@@ -399,7 +399,7 @@ if [ "$is_file_url" = "1" ] || [ "$has_url_scheme" = "0" ]; then
     done
   }
 else
-  scheme="$(echo "$url" | LC_ALL=C sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
+  scheme="$(echo "$url" | LC_ALL="C" sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
 
   [ "$scheme" ] && default="$(defapp "x-scheme-handler/${scheme}")"
 
