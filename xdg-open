@@ -197,17 +197,6 @@ get_key() {
   [ "$result" ] && echo "$result"
 }
 
-# $1: MIME, $2: directory
-xdg_mime_search_desktop_file() {
-  mime="$1" dir="$2"
-
-  grep -l "${mime};" "${dir}/"*.desktop 2> "/dev/null"
-
-  for f in "${dir}/"*/; do
-    [ -d "$f" ] && xdg_mime_search_desktop_file "$mime" "$f"
-  done
-}
-
 check_mimeapps_list() {
   mime="$1" dir="$2"
 
@@ -265,22 +254,8 @@ defapp() {
       grep "${mime}=" "${dir}/applications/defaults.list" "${dir}/applications/mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
     )"
 
-    [ "$desktop_file" ] && { echo "$desktop_file"; return "0"; }
+    [ "$desktop_file" ] && { echo "$desktop_file"; break; }
   done
-
-  desktop_file="" preference="-1"
-
-  IFS=:
-  for dir in $xdg_user_dir $xdg_system_dirs; do
-    IFS="$IFS_"
-    for x in $(xdg_mime_search_desktop_file "$mime" "${dir}/applications"); do
-      pref="0$(awk -F"=" '/InitialPreference=/ {print($2)}' "$x")"
-
-      [ "$pref" -gt "$preference" ] && preference="$pref" desktop_file="$x"
-    done
-  done
-
-  [ "$desktop_file" ] && basename "$desktop_file"
 }
 
 # Recursively search .desktop file.
