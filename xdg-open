@@ -387,12 +387,10 @@ if [ "$is_file_url" = "1" ] || [ "$has_url_scheme" = "0" ]; then
   [ -r "$file" ] || exit "5"
 
   mime="$(file --brief --dereference --mime-type "$file" 2> "/dev/null" | sed "s/;.*//")"
-
-  [ "$mime" ] && default="$(defapp "$mime")"
+  default="${mime:+$(defapp "$mime")}"
 else
   scheme="$(echo "$url" | LC_ALL="C" sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
-
-  [ "$scheme" ] && default="$(defapp "x-scheme-handler/${scheme}")"
+  default="${scheme:+$(defapp "x-scheme-handler/${scheme}")}"
 fi
 
 [ "$default" ] && {
