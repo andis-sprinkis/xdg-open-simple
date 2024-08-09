@@ -141,7 +141,7 @@ desktop_file_to_binary() {
   for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
 
-    [ "$dir" ] && [ -d "${dir}/applications" ] || [ -d "${dir}/applnk" ] || continue
+    [ -d "${dir}/applications" ] || [ -d "${dir}/applnk" ] || continue
 
     file_path=""
 
