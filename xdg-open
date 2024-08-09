@@ -374,12 +374,12 @@ if [ "$is_file_url" = "1" ] || [ "$has_url_scheme" = "0" ]; then
     file="${file#file://"$(uname -n)"}"
     file="${file#file://}"
 
-    if echo "$file" | grep -q '^/'; then
+    [ "$file" ] && {
       file="${file%%#*}"
       file="${file%%\?*}"
       file="$(echo "$file" | sed -e 's@%\([a-f0-9A-F]\{2\}\)@\\x\1@g')"
       file="$(printf "$file")"
-    fi
+    }
   }
 
   file="$(readlink -f "$(unoption_path "$file")")"
