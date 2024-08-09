@@ -196,7 +196,7 @@ get_key() {
 xdg_mime_search_desktop_file() {
   mime="$1" dir="$2"
 
-  grep -l "${mime};" "${dir}/"*.desktop 2>/dev/null
+  grep -l "${mime};" "${dir}/"*.desktop 2> "/dev/null"
 
   for f in "${dir}/"*/; do
     [ -d "$f" ] && xdg_mime_search_desktop_file "$mime" "$f"
@@ -385,7 +385,7 @@ if [ "$is_file_url" = "1" ] || [ "$has_url_scheme" = "0" ]; then
   [ -e "$file" ] || exit "2"
   [ -r "$file" ] || exit "5"
 
-  mime="$(file --brief --dereference --mime-type "$file" 2> /dev/null | sed "s/;.*//")"
+  mime="$(file --brief --dereference --mime-type "$file" 2> "/dev/null" | sed "s/;.*//")"
 else
   scheme="$(echo "$url" | LC_ALL=C sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
 
