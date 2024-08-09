@@ -288,9 +288,9 @@ defapp() {
 # $1: Application, $2: Directory, $3: Target file, $4: Target URL
 search_desktop_file() {
   default="$1" dir="$2" target="$3" target_uri="$4"
+  file=""
 
   # Look for: vendor/app.desktop, vendor-app.desktop
-  file=""
   for fp in "${dir}/${default}" "${dir}/$(echo "$default" | sed -e 's|-|/|')"; do
     [ -r "$fp" ] && { file="$fp"; break; }
   done
