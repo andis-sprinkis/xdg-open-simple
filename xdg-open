@@ -401,9 +401,7 @@ if [ "$is_file_url" = "1" ] || [ "$has_url_scheme" = "0" ]; then
 else
   scheme="$(echo "$url" | LC_ALL=C sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
 
-  [ "$scheme" ] && mime="x-scheme-handler/${scheme}"
-
-  [ "$mime" ] && default="$(defapp "$mime")"
+  [ "$scheme" ] && default="$(defapp "x-scheme-handler/${scheme}")"
 
   [ "$default" ] && {
     IFS_="$IFS" IFS=:
