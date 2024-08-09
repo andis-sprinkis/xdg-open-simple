@@ -360,7 +360,6 @@ search_desktop_file() {
 }
 
 is_file_url="0" has_url_scheme="0" file="" scheme="" mime="" default=""
-desktop_entry_dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
 echo "$url" | grep -q '^file://' && is_file_url="1"
 echo "$url" | LC_ALL="C" grep -Eq '^[[:alpha:]][[:alpha:][:digit:]+\.\-]*:' && has_url_scheme="1"
@@ -390,26 +389,20 @@ if [ "$is_file_url" = "1" ] || [ "$has_url_scheme" = "0" ]; then
   mime="$(file --brief --dereference --mime-type "$file" 2> "/dev/null" | sed "s/;.*//")"
 
   [ "$mime" ] && default="$(defapp "$mime")"
-
-  [ "$default" ] && {
-    IFS_="$IFS" IFS=:
-    for dir in $desktop_entry_dirs; do
-      IFS="$IFS_"
-      search_desktop_file "$default" "${dir}/applications/" "$file"
-    done
-  }
 else
   scheme="$(echo "$url" | LC_ALL="C" sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
 
   [ "$scheme" ] && default="$(defapp "x-scheme-handler/${scheme}")"
-
-  [ "$default" ] && {
-    IFS_="$IFS" IFS=:
-    for dir in $desktop_entry_dirs; do
-      IFS="$IFS_"
-      search_desktop_file "$default" "${dir}/applications/" "$file" "$url"
-    done
-  }
 fi
+
+[ "$default" ] && {
+  dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
+
+  IFS_="$IFS" IFS=:
+  for dir in $dirs; do
+    IFS="$IFS_"
+    search_desktop_file "$default" "${dir}/applications/" "$file" "${scheme:+$url}"
+  done
+}
 
 exit "3"
