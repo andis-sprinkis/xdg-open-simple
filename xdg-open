@@ -360,11 +360,10 @@ search_desktop_file() {
 }
 
 is_file_url="0" has_url_scheme="0" file="" scheme="" mime="" default=""
+desktop_entry_dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
 echo "$url" | grep -q '^file://' && is_file_url="1"
 echo "$url" | LC_ALL="C" grep -Eq '^[[:alpha:]][[:alpha:][:digit:]+\.\-]*:' && has_url_scheme="1"
-
-desktop_entry_dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
 if [ "$is_file_url" = "1" ] || [ "$has_url_scheme" = "0" ]; then
   file="$url" 
