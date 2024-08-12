@@ -95,7 +95,7 @@ application/appinstaller.xml
 ### Preventing _Mozilla Firefox_ from rewriting the user's `mimeapps.list` file
 
 ```sh
-echo > "$HOME/.mozilla/firefox/PROIFLE.default-release/handlers.json'
+echo > "$HOME/.mozilla/firefox/PROFILE.default-release/handlers.json'
 ```
 
 This clears the `handlers.json` file, which removes the downloaded file custom handlers configured in Firefox.
