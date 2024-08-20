@@ -82,7 +82,7 @@ The URLs get the `x-scheme-handler/*` MIME type, with the URL prefix as the suff
 ### Printing the known MIME types
 
 ```sh
-printf "%s\n" /usr/share/mime/*/*.xml | sed -e 's/\/usr\/share\/mime\///g' -e "s/\.xml$//g" | less
+find /usr/share/mime/ -type f -name '*.xml' | sed -e 's/\/usr\/share\/mime\///g' -e "s/\.xml$//g" | less
 ```
 
 ```
