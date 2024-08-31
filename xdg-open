@@ -161,13 +161,13 @@ desktop_file_to_binary() {
       done
     }
 
-    [ "$file_path" ] && {
-      # Remove any arguments (%F, %f, %U, %u, etc.).
-      command="$(grep -E "^Exec(\[[^]=]*])?=" "$file_path" | cut -d= -f 2- | first_word)"
-      command="$(command -v "$command")"
-      readlink -f "$(unoption_path "$command")"
-      break
-    }
+    [ "$file_path" ] || continue
+
+    # Remove any arguments (%F, %f, %U, %u, etc.).
+    command="$(grep -E "^Exec(\[[^]=]*])?=" "$file_path" | cut -d= -f 2- | first_word)"
+    command="$(command -v "$command")"
+    readlink -f "$(unoption_path "$command")"
+    break
   done
 }
 
