@@ -10,7 +10,7 @@ Notable properties of this fork are:
 -   [x] Doesn't auto-forward paths without a known handler to a web browser.
 -   [x] Doesn't auto-forward paths to any other or DE-specific file opener.
 -   [x] Handles the relative file paths.
--   [x] Has no dependency on the `xdg-utils` and a lot more concise than the original `xdg-open`.
+-   [x] Has no dependency on the `xdg-utils` and is a lot more concise than the original `xdg-open`.
 
 ## Installation
 
