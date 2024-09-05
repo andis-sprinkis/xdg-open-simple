@@ -135,44 +135,6 @@ xdg_config_dirs="${XDG_CONFIG_DIRS:-/etc/xdg}"
 xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
 xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
-# Map a .desktop file ID to a binary
-desktop_file_id_to_exec_fpath() {
-  id_desktop="$(basename "$1")"
-
-  IFS=:
-  for dir in $xdg_user_dir $xdg_system_dirs; do
-    IFS="$IFS_"
-
-    [ -d "${dir}/applications" ] || [ -d "${dir}/applnk" ] || continue
-
-    fpath_desktop=""
-
-    # Check if desktop file ID contains -
-    [ "${id_desktop#*-}" = "$id_desktop" ] || {
-      name_vendor="${id_desktop%-*}" name_app="${id_desktop#*-}"
-
-      for fp in "${dir}/applications/${name_vendor}/${name_app}" "${dir}/applnk/${name_vendor}/${name_app}"; do
-        [ -r "$fp" ] && { fpath_desktop="$fp"; break; }
-      done
-    }
-
-    [ "$fpath_desktop" ] || {
-      for indir in "${dir}/applications/" "${dir}/applications/"*/ "${dir}/applnk/" "${dir}/applnk/"*/; do
-        fp="${indir}/${id_desktop}"
-        [ -r "$fp" ] && { fpath_desktop="$fp"; break; }
-      done
-    }
-
-    [ "$fpath_desktop" ] || continue
-
-    # Remove any arguments (%F, %f, %U, %u etc.).
-    command="$(grep -E "^Exec(\[[^]=]*])?=" "$fpath_desktop" | cut -d= -f 2- | first_word)"
-    command="$(command -v "$command")"
-    readlink -f "$(unoption_path "$command")"
-    return
-  done
-}
-
 # Get INI-format-like file (.desktop, mimeapps.list) value by it's key in a specified [Group]
 ini_get_val() {
   file="$1" key="$2" group="$3" first="${4:-0}"
@@ -280,6 +242,44 @@ open_with_desktop_file() {
   exit "0"
 }
 
+# Map a .desktop file ID to a binary
+desktop_file_id_to_exec_fpath() {
+  id_desktop="$(basename "$1")"
+
+  IFS=:
+  for dir in $xdg_user_dir $xdg_system_dirs; do
+    IFS="$IFS_"
+
+    [ -d "${dir}/applications" ] || [ -d "${dir}/applnk" ] || continue
+
+    fpath_desktop=""
+
+    # Check if desktop file ID contains -
+    [ "${id_desktop#*-}" = "$id_desktop" ] || {
+      name_vendor="${id_desktop%-*}" name_app="${id_desktop#*-}"
+
+      for fp in "${dir}/applications/${name_vendor}/${name_app}" "${dir}/applnk/${name_vendor}/${name_app}"; do
+        [ -r "$fp" ] && { fpath_desktop="$fp"; break; }
+      done
+    }
+
+    [ "$fpath_desktop" ] || {
+      for indir in "${dir}/applications/" "${dir}/applications/"*/ "${dir}/applnk/" "${dir}/applnk/"*/; do
+        fp="${indir}/${id_desktop}"
+        [ -r "$fp" ] && { fpath_desktop="$fp"; break; }
+      done
+    }
+  done
+
+  [ "$fpath_desktop" ] || return
+
+  # Remove any arguments (%F, %f, %U, %u etc.).
+  command="$(grep -E "^Exec(\[[^]=]*])?=" "$fpath_desktop" | cut -d= -f 2- | first_word)"
+  command="$(command -v "$command")"
+  readlink -f "$(unoption_path "$command")"
+  return
+}
+
 # Recursively search for a .desktop file and open the target file path using it's Exec application
 # $1: Desktop file ID, $2: Desktop files directory, $3: Target file path, $4: Target URL
 find_desktop_file_recursively() {
@@ -300,8 +300,6 @@ find_desktop_file_recursively() {
   done
 }
 
-is_file_url="0" has_url_scheme="0" file="" scheme="" mime=""
-
 # $1: Desktop file ID, $2: Target file path, $3: Target URL
 open() {
   id="$1" file="$2" url="$3"
@@ -315,6 +313,8 @@ open() {
 
   exit "3"
 }
+
+is_file_url="0" has_url_scheme="0" file="" scheme="" mime=""
 
 echo "$url" | grep -q '^file://' && is_file_url="1"
 echo "$url" | LC_ALL="C" grep -Eq '^[[:alpha:]][[:alpha:][:digit:]+\.\-]*:' && has_url_scheme="1"
