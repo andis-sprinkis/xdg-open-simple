@@ -135,8 +135,8 @@ xdg_config_dirs="${XDG_CONFIG_DIRS:-/etc/xdg}"
 xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
 xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
-# Map a .desktop file to a binary
-desktop_file_to_binary() {
+# Map a .desktop file name to a binary
+desktop_file_name_to_exec() {
   desktop="$(basename "$1")"
 
   IFS=:
@@ -158,8 +158,8 @@ desktop_file_to_binary() {
 
     [ "$file_path" ] || {
       for indir in "${dir}/applications/" "${dir}/applications/"*/ "${dir}/applnk/" "${dir}/applnk/"*/; do
-        file="${indir}/${desktop}"
-        [ -r "$file" ] && { file_path="$file"; break; }
+        fp="${indir}/${desktop}"
+        [ -r "$fp" ] && { file_path="$fp"; break; }
       done
     }
 
@@ -214,7 +214,7 @@ check_mimeapps_list() {
   IFS=\;
   for app in $result; do
     IFS="$IFS_"
-    [ "$(desktop_file_to_binary "$app")" ] && { echo "$app"; return "0"; }
+    [ "$(desktop_file_name_to_exec "$app")" ] && { echo "$app"; return "0"; }
   done
 
   return "1"
@@ -227,8 +227,8 @@ search_desktop_file() {
   file=""
 
   # Look for: vendor/app.desktop, vendor-app.desktop
-  for fp in "${dir}/${default}" "${dir}/$(echo "$default" | sed -e 's|-|/|')"; do
-    [ -r "$fp" ] && { file="$fp"; break; }
+  for f in "${dir}/${default}" "${dir}/$(echo "$default" | sed -e 's|-|/|')"; do
+    [ -r "$f" ] && { file="$f"; break; }
   done
 
   [ "$file" ] && {
@@ -292,6 +292,16 @@ search_desktop_file() {
 
 is_file_url="0" has_url_scheme="0" file="" scheme="" mime="" default=""
 
+open() {
+  IFS=:
+  for dir in $xdg_user_dir $xdg_system_dirs; do
+    IFS="$IFS_"
+    search_desktop_file "$default" "${dir}/applications/" "$file" "${scheme:+$url}"
+  done
+
+  exit "3"
+}
+
 echo "$url" | grep -q '^file://' && is_file_url="1"
 echo "$url" | LC_ALL="C" grep -Eq '^[[:alpha:]][[:alpha:][:digit:]+\.\-]*:' && has_url_scheme="1"
 
@@ -337,39 +347,27 @@ for dir in $xdg_config_home $xdg_config_dirs; do
 
   default="$(check_mimeapps_list "$mime" "$dir")"
 
-  [ "$default" ] && break
+  [ "$default" ] && open
 done
-
-[ "$default" ] || {
-  IFS=:
-  for dir in $xdg_user_dir $xdg_system_dirs; do
-    IFS="$IFS_"
-
-    default="$(check_mimeapps_list "$mime" "${dir}/applications")"
-
-    [ "$default" ] && break
-  done
-}
-
-[ "$default" ] || {
-  IFS=:
-  for dir in $xdg_user_dir $xdg_system_dirs; do
-    IFS="$IFS_"
-
-    default="$(
-      grep "${mime}=" "${dir}/applications/defaults.list" "${dir}/applications/mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
-    )"
-
-    [ "$default" ] && break
-  done
-}
-
-[ "$default" ] || exit "3"
 
 IFS=:
 for dir in $xdg_user_dir $xdg_system_dirs; do
   IFS="$IFS_"
-  search_desktop_file "$default" "${dir}/applications/" "$file" "${scheme:+$url}"
+
+  default="$(check_mimeapps_list "$mime" "${dir}/applications")"
+
+  [ "$default" ] && open
+done
+
+IFS=:
+for dir in $xdg_user_dir $xdg_system_dirs; do
+  IFS="$IFS_"
+
+  default="$(
+    grep "${mime}=" "${dir}/applications/defaults.list" "${dir}/applications/mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
+  )"
+
+  [ "$default" ] && open
 done
 
 exit "3"
