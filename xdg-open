@@ -210,7 +210,7 @@ desktop_file_id_from_mime() {
 
   [ "$ids" ] || return "1"
 
-  # $result could be a ";" separated list of .desktop file IDs. Uses the first one.
+  # $result could be a ";" separated list of .desktop file IDs. Uses the first existant one.
   IFS=\;
   for id in $ids; do
     IFS="$IFS_"
