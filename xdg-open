@@ -244,26 +244,15 @@ open_with_desktop_file() {
 
 # Map a .desktop file ID to a binary.
 desktop_file_id_to_exec_fpath() {
-  id_desktop="$(basename "$1")"
+  id="$(basename "$1")"
 
   fpath_desktop=""
 
   IFS=:
   for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
-
-    [ -d "${dir}/applications" ] || continue
-
-    # Check if desktop file ID contains -
-    [ "${id_desktop#*-}" = "$id_desktop" ] || {
-      name_vendor="${id_desktop%-*}" name_app="${id_desktop#*-}"
-
-      fp="${dir}/applications/${name_vendor}/${name_app}"
-      [ -r "$fp" ] && { fpath_desktop="$fp"; break; }
-    }
-
-    fp="${dir}/applications/${id_desktop}"
-    [ -r "$fp" ] && { fpath_desktop="$fp"; break; }
+    fpath_desktop="$(find_desktop_file "$id" "$dir")"
+    [ "$fpath_desktop" ] && break
   done
 
   [ "$fpath_desktop" ] || return
@@ -275,24 +264,22 @@ desktop_file_id_to_exec_fpath() {
   return
 }
 
-# Recursively search for a .desktop file by it's ID.
-# $1: Desktop file ID, $2: Desktop files directory, $3: Target file path, $4: Target URL
-find_desktop_file_recursively() {
+# $1: Desktop file ID, $2: Search directory
+find_desktop_file() {
   id="$1" dir="$2"
 
-  fpath_desktop=""
+  [ -d "${dir}/applications" ] || return
 
-  # Look for files vendor/app.desktop, vendor-app.desktop
-  for f in "${dir}/${id}" "${dir}/$(echo "$id" | sed -e 's|-|/|')"; do
-    [ -r "$f" ] && { fpath_desktop="$f"; break; }
-  done
-  # FIXME: remove the duplicated desktop file lookup with desktop_file_id_to_exec_fpath
+  # Check if desktop file ID contains -
+  [ "${id#*-}" = "$id" ] || {
+    name_vendor="${id%-*}" name_app="${id#*-}"
 
-  [ "$fpath_desktop" ] && { echo "$fpath_desktop"; return; }
+    fp="${dir}/applications/${name_vendor}/${name_app}"
+    [ -r "$fp" ] && { echo "$fp"; return; }
+  }
 
-  for d in "${dir}/"*/; do
-    [ -d "$d" ] && find_desktop_file_recursively "$id" "$d"
-  done
+  fp="${dir}/applications/${id}"
+  [ -r "$fp" ] && { echo "$fp"; return; }
 }
 
 # $1: Desktop file ID, $2: Target file path, $3: Target URL
@@ -302,7 +289,7 @@ open() {
   IFS=:
   for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
-    fpath_desktop="$(find_desktop_file_recursively "$id" "${dir}/applications/")"
+    fpath_desktop="$(find_desktop_file "$id" "$dir")"
     [ "$fpath_desktop" ] && open_with_desktop_file "$fpath_desktop" "$file" "$url"
   done
 
