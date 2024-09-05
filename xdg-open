@@ -220,7 +220,7 @@ desktop_file_id_from_mime() {
   return "1"
 }
 
-# Recursively search .desktop file.
+# Recursively search for a .desktop file and open the target file path using it's Exec application
 # $1: Desktop file ID, $2: Desktop files directory, $3: Target file path, $4: Target URL
 find_launch_desktop_file() {
   id="$1" dir="$2" target_fpath="$3" target_uri="$4"
