@@ -250,7 +250,7 @@ desktop_file_id_to_exec_fpath() {
   for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
 
-    [ -d "${dir}/applications" ] || [ -d "${dir}/applnk" ] || continue
+    [ -d "${dir}/applications" ] || continue
 
     fpath_desktop=""
 
@@ -258,13 +258,11 @@ desktop_file_id_to_exec_fpath() {
     [ "${id_desktop#*-}" = "$id_desktop" ] || {
       name_vendor="${id_desktop%-*}" name_app="${id_desktop#*-}"
 
-      for fp in "${dir}/applications/${name_vendor}/${name_app}" "${dir}/applnk/${name_vendor}/${name_app}"; do
-        [ -r "$fp" ] && { fpath_desktop="$fp"; break; }
-      done
+      [ -r "${dir}/applications/${name_vendor}/${name_app}" ] && { fpath_desktop="$fp"; break; }
     }
 
     [ "$fpath_desktop" ] || {
-      for indir in "${dir}/applications/" "${dir}/applications/"*/ "${dir}/applnk/" "${dir}/applnk/"*/; do
+      for indir in "${dir}/applications/" "${dir}/applications/"*/; do
         fp="${indir}/${id_desktop}"
         [ -r "$fp" ] && { fpath_desktop="$fp"; break; }
       done
