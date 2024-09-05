@@ -136,7 +136,7 @@ xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
 xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
 # Map a .desktop file ID to a binary
-desktop_file_id_to_exec() {
+desktop_file_id_to_fpath_exec() {
   id_desktop="$(basename "$1")"
 
   IFS=:
@@ -214,7 +214,7 @@ desktop_file_id_from_mime() {
   IFS=\;
   for id in $ids; do
     IFS="$IFS_"
-    [ "$(desktop_file_id_to_exec "$id")" ] && { echo "$id"; return "0"; }
+    [ "$(desktop_file_id_to_fpath_exec "$id")" ] && { echo "$id"; return "0"; }
   done
 
   return "1"
