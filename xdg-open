@@ -242,7 +242,7 @@ open_with_desktop_file() {
   exit "0"
 }
 
-# Map a .desktop file ID to a binary
+# Map a .desktop file ID to a binary.
 desktop_file_id_to_exec_fpath() {
   id_desktop="$(basename "$1")"
 
@@ -280,7 +280,7 @@ desktop_file_id_to_exec_fpath() {
   return
 }
 
-# Recursively search for a .desktop file and open the target file path using it's Exec application
+# Recursively search for a .desktop file by it's ID.
 # $1: Desktop file ID, $2: Desktop files directory, $3: Target file path, $4: Target URL
 find_desktop_file_recursively() {
   id="$1" dir="$2"
