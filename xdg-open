@@ -136,7 +136,7 @@ xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
 xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
 # Map a .desktop file ID to a binary
-desktop_file_id_to_fpath_exec() {
+desktop_file_id_to_exec_fpath() {
   id_desktop="$(basename "$1")"
 
   IFS=:
@@ -199,7 +199,7 @@ ini_get_val() {
   [ "$result" ] && echo "$result"
 }
 
-desktop_file_id_from_mime() {
+mime_to_desktop_file_id() {
   mime="$1" dir="$2"
 
   fpath_mimeapps="${dir}/mimeapps.list"
@@ -214,10 +214,66 @@ desktop_file_id_from_mime() {
   IFS=\;
   for id in $ids; do
     IFS="$IFS_"
-    [ "$(desktop_file_id_to_fpath_exec "$id")" ] && { echo "$id"; return "0"; }
+    [ "$(desktop_file_id_to_exec_fpath "$id")" ] && { echo "$id"; return "0"; }
   done
 
   return "1"
+}
+
+launch_desktop_file() {
+  fpath_desktop="$1" target_fpath="$2" target_uri="$3"
+
+  command="$(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry" | first_word)"
+
+  command -v "$command" > "/dev/null" || return
+
+  icon="$(ini_get_val "$fpath_desktop" "Icon" "Desktop Entry")"
+  name="$(ini_get_val "$fpath_desktop" "Name" "Desktop Entry")"
+
+  # shellcheck disable=SC2046
+  set -- $(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry" | last_word)
+
+  # We need to replace any occurrence of "%f", "%F" and the like by the target file.
+  # We examine each argument and append the modified argument to the end then shift.
+  args="$#" replaced="0"
+  while [ "$args" -gt "0" ]; do
+    case $1 in
+      %[c])
+        replaced="1" arg="$name"
+        shift
+        set -- "$@" "$arg"
+      ;;
+      %[fF])
+        # If there is only a target_url - return - this .desktop application can't handle it.
+        [ "$target_fpath" ] || return
+        replaced="1" arg="$target_fpath"
+        shift
+        set -- "$@" "$arg"
+      ;;
+      %[uU])
+        replaced="1"
+        # When an URI is requested use it, otherwise fall back to the filepath.
+        arg="${target_uri:-$target_fpath}"
+        shift
+        set -- "$@" "$arg"
+      ;;
+      %[i])
+        replaced="1"
+        shift
+        set -- "$@" "--icon" "$icon"
+      ;;
+      *)
+        arg="$1"
+        shift
+        set -- "$@" "$arg"
+      ;;
+    esac
+    args="$((args - 1))"
+  done
+
+  [ "$replaced" = "1" ] || set -- "$@" "${target_fpath:-$target_uri}"
+
+  env "$command" "$@"; exit "0"
 }
 
 # Recursively search for a .desktop file and open the target file path using it's Exec application
@@ -231,60 +287,11 @@ find_launch_desktop_file() {
   for f in "${dir}/${id}" "${dir}/$(echo "$id" | sed -e 's|-|/|')"; do
     [ -r "$f" ] && { fpath_desktop="$f"; break; }
   done
-  # FIXME: remove the duplicated desktop file lookup with desktop_file_id_to_fpath_exec
+  # FIXME: remove the duplicated desktop file lookup with desktop_file_id_to_exec_fpath
 
   [ "$fpath_desktop" ] && {
-    command="$(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry" | first_word)"
-
-    command -v "$command" > "/dev/null" || return
-
-    icon="$(ini_get_val "$fpath_desktop" "Icon" "Desktop Entry")"
-    name="$(ini_get_val "$fpath_desktop" "Name" "Desktop Entry")"
-
-    # shellcheck disable=SC2046
-    set -- $(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry" | last_word)
-
-    # We need to replace any occurrence of "%f", "%F" and the like by the target file.
-    # We examine each argument and append the modified argument to the end then shift.
-    args="$#" replaced="0"
-    while [ "$args" -gt "0" ]; do
-      case $1 in
-        %[c])
-          replaced="1" arg="$name"
-          shift
-          set -- "$@" "$arg"
-        ;;
-        %[fF])
-          # If there is only a target_url - return - this application can't handle it.
-          [ "$target_fpath" ] || return
-          replaced="1" arg="$target_fpath"
-          shift
-          set -- "$@" "$arg"
-        ;;
-        %[uU])
-          replaced="1"
-          # When an URI is requested use it, otherwise fall back to the filepath.
-          arg="${target_uri:-$target_fpath}"
-          shift
-          set -- "$@" "$arg"
-        ;;
-        %[i])
-          replaced="1"
-          shift
-          set -- "$@" "--icon" "$icon"
-        ;;
-        *)
-          arg="$1"
-          shift
-          set -- "$@" "$arg"
-        ;;
-      esac
-      args="$((args - 1))"
-    done
-
-    [ "$replaced" = "1" ] || set -- "$@" "${target_fpath:-$target_uri}"
-
-    env "$command" "$@"; exit "0"
+    launch_desktop_file "$fpath_desktop" "$target_fpath" "$target_uri"
+    return
   }
 
   for d in "${dir}/"*/; do
@@ -350,7 +357,7 @@ IFS=:
 for dir in $xdg_config_home $xdg_config_dirs; do
   IFS="$IFS_"
 
-  id="$(desktop_file_id_from_mime "$mime" "$dir")"
+  id="$(mime_to_desktop_file_id "$mime" "$dir")"
 
   [ "$id" ] && open "$id" "$file" "${scheme:+$url}"
 done
@@ -359,7 +366,7 @@ IFS=:
 for dir in $xdg_user_dir $xdg_system_dirs; do
   IFS="$IFS_"
 
-  id="$(desktop_file_id_from_mime "$mime" "${dir}/applications")"
+  id="$(mime_to_desktop_file_id "$mime" "${dir}/applications")"
 
   [ "$id" ] && open "$id" "$file" "${scheme:+$url}"
 done
