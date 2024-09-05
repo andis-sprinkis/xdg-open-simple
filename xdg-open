@@ -184,8 +184,12 @@ mime_to_desktop_file_id() {
 }
 
 # $1: Desktop file path, $2: Target file path, $3: Target file URI
-open_with_desktop_file() {
-  fpath_desktop="$1" target_fpath="$2" target_uri="$3"
+open() {
+  id="$1" target_fpath="$2" target_uri="$3"
+
+  fpath_desktop="$(find_desktop_file "$id")"
+
+  [ "$fpath_desktop" ] || return
 
   command="$(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry" | first_word)"
 
@@ -246,15 +250,7 @@ open_with_desktop_file() {
 desktop_file_id_to_exec_fpath() {
   id="$(basename "$1")"
 
-  fpath_desktop=""
-
-  IFS=:
-  for dir in $xdg_user_dir $xdg_system_dirs; do
-    IFS="$IFS_"
-    fpath_desktop="$(find_desktop_file "$id" "$dir")"
-    [ "$fpath_desktop" ] && break
-  done
-
+  fpath_desktop="$(find_desktop_file "$id")"
   [ "$fpath_desktop" ] || return
 
   # Remove any arguments (%F, %f, %U, %u etc.).
@@ -264,36 +260,26 @@ desktop_file_id_to_exec_fpath() {
   return
 }
 
-# $1: Desktop file ID, $2: Search directory
+# $1: Desktop file ID
 find_desktop_file() {
-  id="$1" dir="$2"
-
-  [ -d "${dir}/applications" ] || return
-
-  # Check if desktop file ID contains -
-  [ "${id#*-}" = "$id" ] || {
-    name_vendor="${id%-*}" name_app="${id#*-}"
-
-    fp="${dir}/applications/${name_vendor}/${name_app}"
-    [ -r "$fp" ] && { echo "$fp"; return; }
-  }
-
-  fp="${dir}/applications/${id}"
-  [ -r "$fp" ] && { echo "$fp"; return; }
-}
-
-# $1: Desktop file ID, $2: Target file path, $3: Target URL
-open() {
-  id="$1" file="$2" url="$3"
+  id="$1"
 
   IFS=:
   for dir in $xdg_user_dir $xdg_system_dirs; do
-    IFS="$IFS_"
-    fpath_desktop="$(find_desktop_file "$id" "$dir")"
-    [ "$fpath_desktop" ] && open_with_desktop_file "$fpath_desktop" "$file" "$url"
-  done
+  IFS="$IFS_"
+    [ -d "${dir}/applications" ] || continue
 
-  exit "3"
+    # Check if desktop file ID contains -
+    [ "${id#*-}" = "$id" ] || {
+      name_vendor="${id%-*}" name_app="${id#*-}"
+
+      fp="${dir}/applications/${name_vendor}/${name_app}"
+      [ -r "$fp" ] && { echo "$fp"; return; }
+    }
+
+    fp="${dir}/applications/${id}"
+    [ -r "$fp" ] && { echo "$fp"; return; }
+  done
 }
 
 is_file_url="0" has_url_scheme="0" file="" scheme="" mime=""
