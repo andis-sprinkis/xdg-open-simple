@@ -199,6 +199,7 @@ ini_get_val() {
   [ "$result" ] && echo "$result"
 }
 
+# $1: MIME type, $2: mimeapps.list file directory
 mime_to_desktop_file_id() {
   mime="$1" dir="$2"
 
@@ -220,7 +221,8 @@ mime_to_desktop_file_id() {
   return "1"
 }
 
-launch_desktop_file() {
+# $1: Desktop file path, $2: Target file path, $3: Target file URI
+open_with_desktop_file() {
   fpath_desktop="$1" target_fpath="$2" target_uri="$3"
 
   command="$(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry" | first_word)"
@@ -273,13 +275,15 @@ launch_desktop_file() {
 
   [ "$replaced" = "1" ] || set -- "$@" "${target_fpath:-$target_uri}"
 
-  env "$command" "$@"; exit "0"
+  env "$command" "$@"
+
+  exit "0"
 }
 
 # Recursively search for a .desktop file and open the target file path using it's Exec application
 # $1: Desktop file ID, $2: Desktop files directory, $3: Target file path, $4: Target URL
-find_launch_desktop_file() {
-  id="$1" dir="$2" target_fpath="$3" target_uri="$4"
+find_desktop_file_recursively() {
+  id="$1" dir="$2"
 
   fpath_desktop=""
 
@@ -289,13 +293,10 @@ find_launch_desktop_file() {
   done
   # FIXME: remove the duplicated desktop file lookup with desktop_file_id_to_exec_fpath
 
-  [ "$fpath_desktop" ] && {
-    launch_desktop_file "$fpath_desktop" "$target_fpath" "$target_uri"
-    return
-  }
+  [ "$fpath_desktop" ] && { echo "$fpath_desktop"; return; }
 
   for d in "${dir}/"*/; do
-    [ -d "$d" ] && find_launch_desktop_file "$id" "$d" "$target_fpath" "$target_uri"
+    [ -d "$d" ] && find_desktop_file_recursively "$id" "$d"
   done
 }
 
@@ -308,7 +309,8 @@ open() {
   IFS=:
   for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
-    find_launch_desktop_file "$id" "${dir}/applications/" "$file" "$url"
+    fpath_desktop="$(find_desktop_file_recursively "$id" "${dir}/applications/")"
+    [ "$fpath_desktop" ] && open_with_desktop_file "$fpath_desktop" "$file" "$url"
   done
 
   exit "3"
@@ -318,7 +320,7 @@ echo "$url" | grep -q '^file://' && is_file_url="1"
 echo "$url" | LC_ALL="C" grep -Eq '^[[:alpha:]][[:alpha:][:digit:]+\.\-]*:' && has_url_scheme="1"
 
 if [ "$is_file_url" = "1" ] || [ "$has_url_scheme" = "0" ]; then
-  file="$url" 
+  file="$url"
 
   # Convert file URL to a percent-decoded path.
   [ "$is_file_url" = "1" ] && {
