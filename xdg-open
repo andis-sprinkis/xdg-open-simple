@@ -231,6 +231,7 @@ find_launch_desktop_file() {
   for f in "${dir}/${id}" "${dir}/$(echo "$id" | sed -e 's|-|/|')"; do
     [ -r "$f" ] && { fpath_desktop="$f"; break; }
   done
+  # FIXME: remove the duplicated desktop file lookup with desktop_file_id_to_fpath_exec
 
   [ "$fpath_desktop" ] && {
     command="$(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry" | first_word)"
