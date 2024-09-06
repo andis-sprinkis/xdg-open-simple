@@ -162,7 +162,7 @@ ini_get_val() {
 }
 
 # $1: MIME type, $2: mimeapps.list file directory
-mimeapps_to_desktop_file_ids() {
+mimeapps_list_to_desktop_file_ids() {
   mime="$1" dir="$2"
 
   fpath_mimeapps="${dir}/mimeapps.list"
@@ -312,7 +312,7 @@ IFS=:
 for dir in $xdg_config_home $xdg_config_dirs; do
   IFS="$IFS_"
 
-  ids="$(mimeapps_to_desktop_file_ids "$mime" "$dir")"
+  ids="$(mimeapps_list_to_desktop_file_ids "$mime" "$dir")"
 
   [ "$ids" ] && open "$ids" "$file" "${scheme:+$url}"
 done
@@ -321,7 +321,7 @@ IFS=:
 for dir in $xdg_user_dir $xdg_system_dirs; do
   IFS="$IFS_"
 
-  ids="$(mimeapps_to_desktop_file_ids "$mime" "${dir}/applications")"
+  ids="$(mimeapps_list_to_desktop_file_ids "$mime" "${dir}/applications")"
 
   [ "$ids" ] && open "$ids" "$file" "${scheme:+$url}"
 done
