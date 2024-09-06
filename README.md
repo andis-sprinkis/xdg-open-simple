@@ -57,7 +57,6 @@ video/mp4=video.desktop
 ...
 ```
 
-
 The system `.desktop` files are in `/usr/share/applications`.
 
 #### A user custom file handler
