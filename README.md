@@ -4,7 +4,7 @@
 
 ## Notable properties of this fork
 
--   Several features and behaviors have been **removed**:
+-   **Several features and behaviors have been removed**:
     -   Auto-forwarding target file paths without a known handler to a web browser.
     -   Handling of the `$BROWSER` variable.
     -   Handling of any deprecated `mimeapps.list` and Desktop file search paths.
@@ -14,7 +14,7 @@
     -   Fallback to `mimeinfo.cache` for finding MIME-associated Desktop file IDs.
         -   Reason: not in the specification and suggests a system misconfiguration, which should be surfaced.
 -   Support of the relative target file paths has been added.
--   Has no dependency on the `xdg-utils` and is a lot more concise than the original `xdg-open`.
+-   Has no dependency on the `xdg-utils` and is **a lot more concise than the original** `xdg-open`.
 -   Retains the original `xdg-open` exit codes, where applicable, for compatibility.
 -   Adheres to the XDG specifications ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/), ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
 
