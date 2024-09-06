@@ -12,7 +12,7 @@
     -   Handling of `${XDG_DESKTOP_SESSION}-mimeapps.list`.
         -   Reason: the lowercased `$XDG_DESKTOP_SESSION` value in several desktop environments doesn't map directly to the `xdg-open` search paths in the simple way it's described in the specification.
     -   Substituting `Name` (`%c`) and `Icon` (`%i`) field codes within the `Exec` key.
-        -   Reason: no application vendor uses this (out of the 100 Desktop files on my Linux system, none have these field codes in `Exec`).
+        -   Reason: no application vendor uses this - out of the 100 Desktop files on my Linux system, none have these field codes in `Exec`.
     -   Fallback to `mimeinfo.cache` for finding MIME-associated Desktop file IDs.
         -   Reason: not in the specification and suggests a system misconfiguration, which should be surfaced.
 -   Support of the relative target file paths has been added.
