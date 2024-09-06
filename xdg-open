@@ -162,7 +162,7 @@ ini_get_val() {
 }
 
 # $1: MIME type, $2: mimeapps.list file directory
-mimeapps_to_desktop_file_id() {
+mimeapps_to_desktop_file_ids() {
   mime="$1" dir="$2"
 
   fpath_mimeapps="${dir}/mimeapps.list"
@@ -173,91 +173,76 @@ mimeapps_to_desktop_file_id() {
 
   [ "$ids" ] || return "1"
 
-  # $ids could be a ";" separated list of .desktop file IDs. Uses the first existant one.
-  IFS=\;
-  for id in $ids; do
-    IFS="$IFS_"
-    [ "$(desktop_file_id_to_exec_fpath "$id")" ] && { echo "$id"; return "0"; }
-  done
-
-  return "1"
+  echo "$ids"
 }
 
 # $1: Desktop file path, $2: Target file path, $3: Target file URI
 open() {
-  id="$1" target_fpath="$2" target_uri="$3"
+  ids="$1" target_fpath="$2" target_uri="$3"
 
-  fpath_desktop="$(find_desktop_file "$id")"
+  # $ids could be a ";" separated list of .desktop file IDs. Uses the first existant one.
+  IFS=\;
+  for id in $ids; do
+    IFS="$IFS_"
 
-  [ "$fpath_desktop" ] || return
+    fpath_desktop="$(find_desktop_file "$id")"
 
-  command="$(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry" | first_word)"
+    [ "$fpath_desktop" ] || continue
 
-  command -v "$command" > "/dev/null" || return
+    command="$(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry" | first_word)"
 
-  icon="$(ini_get_val "$fpath_desktop" "Icon" "Desktop Entry")"
-  name="$(ini_get_val "$fpath_desktop" "Name" "Desktop Entry")"
+    command -v "$command" > "/dev/null" || return
 
-  # shellcheck disable=SC2046
-  set -- $(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry" | last_word)
+    icon="$(ini_get_val "$fpath_desktop" "Icon" "Desktop Entry")"
+    name="$(ini_get_val "$fpath_desktop" "Name" "Desktop Entry")"
 
-  # We need to replace any occurrence of "%f", "%F" and the like by the target file.
-  # We examine each argument and append the modified argument to the end then shift.
-  args="$#" replaced="0"
-  while [ "$args" -gt "0" ]; do
-    case $1 in
-      %[c])
-        replaced="1" arg="$name"
-        shift
-        set -- "$@" "$arg"
-      ;;
-      %[fF])
-        # If there is only a target_url - return - this .desktop application can't handle it.
-        [ "$target_fpath" ] || return
-        replaced="1" arg="$target_fpath"
-        shift
-        set -- "$@" "$arg"
-      ;;
-      %[uU])
-        replaced="1"
-        # When an URI is requested use it, otherwise fall back to the filepath.
-        arg="${target_uri:-$target_fpath}"
-        shift
-        set -- "$@" "$arg"
-      ;;
-      %[i])
-        replaced="1"
-        shift
-        set -- "$@" "--icon" "$icon"
-      ;;
-      *)
-        arg="$1"
-        shift
-        set -- "$@" "$arg"
-      ;;
-    esac
-    args="$((args - 1))"
+    # shellcheck disable=SC2046
+    set -- $(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry" | last_word)
+
+    # We need to replace any occurrence of "%f", "%F" and the like by the target file.
+    # We examine each argument and append the modified argument to the end then shift.
+    args="$#" replaced="0"
+    while [ "$args" -gt "0" ]; do
+      case $1 in
+        %[c])
+          replaced="1" arg="$name"
+          shift
+          set -- "$@" "$arg"
+        ;;
+        %[fF])
+          # If there is only a target_url - return - this .desktop application can't handle it.
+          [ "$target_fpath" ] || continue
+          replaced="1" arg="$target_fpath"
+          shift
+          set -- "$@" "$arg"
+        ;;
+        %[uU])
+          replaced="1"
+          # When an URI is requested use it, otherwise fall back to the filepath.
+          arg="${target_uri:-$target_fpath}"
+          shift
+          set -- "$@" "$arg"
+        ;;
+        %[i])
+          replaced="1"
+          shift
+          set -- "$@" "--icon" "$icon"
+        ;;
+        *)
+          arg="$1"
+          shift
+          set -- "$@" "$arg"
+        ;;
+      esac
+      args="$((args - 1))"
+    done
+
+    [ "$replaced" = "1" ] || set -- "$@" "${target_fpath:-$target_uri}"
+
+    env "$command" "$@"
+
+    exit "0"
   done
-
-  [ "$replaced" = "1" ] || set -- "$@" "${target_fpath:-$target_uri}"
-
-  env "$command" "$@"
-
-  exit "0"
-}
-
-# Map a .desktop file ID to a binary.
-desktop_file_id_to_exec_fpath() {
-  id="$(basename "$1")"
-
-  fpath_desktop="$(find_desktop_file "$id")"
-  [ "$fpath_desktop" ] || return
-
-  # Remove any arguments (%F, %f, %U, %u etc.).
-  command="$(grep -E "^Exec(\[[^]=]*])?=" "$fpath_desktop" | cut -d= -f 2- | first_word)"
-  command="$(command -v "$command")"
-  readlink -f "$(unoption_path "$command")"
-  return
 }
 
 # $1: Desktop file ID
@@ -327,18 +312,18 @@ IFS=:
 for dir in $xdg_config_home $xdg_config_dirs; do
   IFS="$IFS_"
 
-  id="$(mimeapps_to_desktop_file_id "$mime" "$dir")"
+  ids="$(mimeapps_to_desktop_file_ids "$mime" "$dir")"
 
-  [ "$id" ] && open "$id" "$file" "${scheme:+$url}"
+  [ "$ids" ] && open "$ids" "$file" "${scheme:+$url}"
 done
 
 IFS=:
 for dir in $xdg_user_dir $xdg_system_dirs; do
   IFS="$IFS_"
 
-  id="$(mimeapps_to_desktop_file_id "$mime" "${dir}/applications")"
+  ids="$(mimeapps_to_desktop_file_ids "$mime" "${dir}/applications")"
 
-  [ "$id" ] && open "$id" "$file" "${scheme:+$url}"
+  [ "$ids" ] && open "$ids" "$file" "${scheme:+$url}"
 done
 
 IFS=:
@@ -347,15 +332,7 @@ for dir in $xdg_user_dir $xdg_system_dirs; do
 
   ids="$(grep "${mime}=" "${dir}/applications/mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1)"
 
-  [ "$ids" ] && break
+  [ "$ids" ] && open "$ids" "$file" "${scheme:+$url}"
 done
-
-[ "$ids" ] && {
-  IFS=\;
-  for id in $ids; do
-    IFS="$IFS_"
-    open "$id" "$file" "${scheme:+$url}"
-  done
-}
 
 exit "3"
