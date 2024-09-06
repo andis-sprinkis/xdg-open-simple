@@ -183,44 +183,42 @@ open() {
 
     [ "$fpath_desktop" ] || continue
 
-    command="$(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry" | first_word)"
+    val_exec="$(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry")"
+    command="$(echo "$val_exec" | first_word)"
 
     command -v "$command" > "/dev/null" || continue
 
-    icon="$(ini_get_val "$fpath_desktop" "Icon" "Desktop Entry")"
-    name="$(ini_get_val "$fpath_desktop" "Name" "Desktop Entry")"
-
     # shellcheck disable=SC2046
-    set -- $(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry" | last_word)
+    set -- $(echo "$val_exec" | last_word)
 
     # We need to replace any occurrence of "%f", "%F" and the like by the target file.
     # We examine each argument and append the modified argument to the end then shift.
     args="$#" replaced="0"
     while [ "$args" -gt "0" ]; do
       case $1 in
-        %[c])
-          replaced="1" arg="$name"
-          shift
-          set -- "$@" "$arg"
-        ;;
-        %[fF])
-          # If there is only a target_url, this .desktop application can't handle the target.
-          [ "$target_fpath" ] || continue "2"
-          replaced="1" arg="$target_fpath"
-          shift
-          set -- "$@" "$arg"
-        ;;
-        %[uU])
+        %[Uu])
           replaced="1"
           # When an URI is requested use it, otherwise fall back to the file path.
           arg="${target_uri:-$target_fpath}"
           shift
           set -- "$@" "$arg"
         ;;
+        %[Ff])
+          # If there is only a target_url, this .desktop application can't handle the target.
+          [ "$target_fpath" ] || continue "2"
+          replaced="1" arg="$target_fpath"
+          shift
+          set -- "$@" "$arg"
+        ;;
+        %[c])
+          replaced="1" arg="$(ini_get_val "$fpath_desktop" "Name" "Desktop Entry")"
+          shift
+          set -- "$@" "$arg"
+        ;;
         %[i])
           replaced="1"
           shift
-          set -- "$@" "--icon" "$icon"
+          set -- "$@" "--icon" "$(ini_get_val "$fpath_desktop" "Icon" "Desktop Entry")"
         ;;
         *)
           arg="$1"
