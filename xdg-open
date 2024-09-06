@@ -241,7 +241,7 @@ open() {
 
 is_file_url="0" file="" scheme="" mime=""
 
-echo "$url" | grep -q '^file://' && is_file_url="1"
+[ "$url" = "${url#file://}" ] || is_file_url="1"
 scheme="$(echo "$url" | LC_ALL="C" sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
 
 if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
@@ -268,7 +268,7 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
   [ -e "$file" ] || exit "2"
   [ -r "$file" ] || exit "5"
 
-  mime="$(file --brief --dereference --mime-type "$file" 2> "/dev/null" | sed "s/;.*//")"
+  mime="$(file --brief --dereference --mime-type "$file" 2> "/dev/null" | cut -d\; -f1)"
 else
   mime="${scheme:+"x-scheme-handler/${scheme}"}"
 fi
