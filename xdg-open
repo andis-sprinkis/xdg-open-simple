@@ -91,20 +91,18 @@ EXAMPLES
 
 IFS_="$IFS"
 
-exit_err_cmd_syntax() { echo "$help_info" 1>&2; exit "1"; }
-
 while getopts :h name; do
   case "$name" in
     "h")
       echo "$help_info"; exit
     ;;
     "?")
-      exit_err_cmd_syntax
+      echo "$help_info" 1>&2; exit "1"
     ;;
   esac
 done
 
-{ [ "$1" = "" ] || [ "$#" -gt "1" ]; } && exit_err_cmd_syntax
+{ [ "$1" = "" ] || [ "$#" -gt "1" ]; } && { echo "$help_info" 1>&2; exit "1"; }
 
 url="$1"
 
