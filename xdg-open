@@ -188,7 +188,7 @@ open() {
           set -- "$@" "$arg"
         ;;
         %[fF])
-          # If there is only a target_url, continue the loop. This .desktop application can't handle only the URL.
+          # If there is only a target_url, this .desktop application can't handle the target.
           [ "$target_fpath" ] || continue "2"
           replaced="1" arg="$target_fpath"
           shift
@@ -196,7 +196,7 @@ open() {
         ;;
         %[uU])
           replaced="1"
-          # When an URI is requested use it, otherwise fall back to the filepath.
+          # When an URI is requested use it, otherwise fall back to the file path.
           arg="${target_uri:-$target_fpath}"
           shift
           set -- "$@" "$arg"
@@ -230,9 +230,9 @@ find_desktop_file() {
   IFS=:
   for dir in $xdg_user_dir $xdg_system_dirs; do
     IFS="$IFS_"
+
     [ -d "${dir}/applications" ] || continue
 
-    # Check if desktop file ID contains -
     [ "${id#*-}" = "$id" ] || {
       name_vendor="${id%-*}" name_app="${id#*-}"
 
