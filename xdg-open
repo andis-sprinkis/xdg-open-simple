@@ -148,7 +148,7 @@ ini_get_val() {
   [ "$result" ] && echo "$result"
 }
 
-# $1: Desktop file path, $2: Target file path, $3: Target file URI
+# $1: Target file path, $2: Target file URI, $3: mimeapps.list dir, $4: MIME type
 open() {
   target_fpath="$1" target_uri="$2" dir="$3" mime="$4"
 
