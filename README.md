@@ -10,7 +10,7 @@
     -   Handling of any deprecated `mimeapps.list` and Desktop file search paths.
     -   Auto-forwarding target file paths to desktop environment specific file openers.
     -   Handling of `${XDG_DESKTOP_SESSION}-mimeapps.list`.
-        -   Reason: the lowercased `$XDG_DESKTOP_SESSION` value in production often doesn't map directly to the `xdg-open` search paths in the simple way it's described in the specification.
+        -   Reason: the lowercased `$XDG_DESKTOP_SESSION` value in several production environments doesn't map directly to the `xdg-open` search paths in the simple way it's described in the specification.
     -   Fallback to `mimeinfo.cache` for finding MIME-associated Desktop file IDs.
         -   Reason: not in the specification and suggests a system misconfiguration, which should be surfaced.
 -   [x] Support of the relative target file paths has been added.
