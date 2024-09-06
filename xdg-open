@@ -242,6 +242,7 @@ open() {
 is_file_url="0" file="" scheme="" mime=""
 
 [ "$url" = "${url#file://}" ] || is_file_url="1"
+
 scheme="$(echo "$url" | LC_ALL="C" sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
 
 if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
