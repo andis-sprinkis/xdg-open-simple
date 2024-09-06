@@ -137,7 +137,7 @@ ini_get_val() {
       "${key}="*)
         [ "$is_tgt_group" = "0" ] && continue
         result="${line#*=}"
-        [ "$result" = "$line" ] || break
+        break
       ;;
     esac
   done < "$file"
