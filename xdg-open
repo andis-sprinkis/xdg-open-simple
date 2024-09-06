@@ -199,16 +199,6 @@ open() {
           shift
           set -- "$@" "$arg"
         ;;
-        %[c])
-          replaced="1" arg="$(ini_get_val "$fpath_desktop" "Name" "Desktop Entry")"
-          shift
-          set -- "$@" "$arg"
-        ;;
-        %[i])
-          replaced="1"
-          shift
-          set -- "$@" "--icon" "$(ini_get_val "$fpath_desktop" "Icon" "Desktop Entry")"
-        ;;
         *)
           arg="$1"
           shift
