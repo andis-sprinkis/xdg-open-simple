@@ -163,7 +163,23 @@ open() {
   for id in $ids; do
     IFS="$IFS_"
 
-    fpath_desktop="$(find_desktop_file "$id")"
+    fpath_desktop="$(
+      IFS=:
+      for d in $xdg_user_dir $xdg_system_dirs; do
+        IFS="$IFS_"
+
+        [ -d "${d}/applications" ] || continue
+
+        prefix="${id#*-}"
+        [ "$prefix" = "$id" ] || {
+          fp="${d}/applications/${prefix}/${id#*-}"
+          [ -r "$fp" ] && { echo "$fp"; break; }
+        }
+
+        fp="${d}/applications/${id}"
+        [ -r "$fp" ] && { echo "$fp"; break; }
+      done
+    )"
 
     [ "$fpath_desktop" ] || continue
 
@@ -220,27 +236,6 @@ open() {
     env "$command" "$@"
 
     exit "0"
-  done
-}
-
-# $1: Desktop file ID
-find_desktop_file() {
-  id="$1"
-
-  IFS=:
-  for dir in $xdg_user_dir $xdg_system_dirs; do
-    IFS="$IFS_"
-
-    [ -d "${dir}/applications" ] || continue
-
-    prefix="${id#*-}"
-    [ "$prefix" = "$id" ] || {
-      fp="${dir}/applications/${prefix}/${id#*-}"
-      [ -r "$fp" ] && { echo "$fp"; return; }
-    }
-
-    fp="${dir}/applications/${id}"
-    [ -r "$fp" ] && { echo "$fp"; return; }
   done
 }
 
