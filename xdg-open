@@ -189,7 +189,7 @@ open() {
         ;;
         %[fF])
           # If there is only a target_url, continue the loop. This .desktop application can't handle only the URL.
-          [ "$target_fpath" ] || continue
+          [ "$target_fpath" ] || continue "2"
           replaced="1" arg="$target_fpath"
           shift
           set -- "$@" "$arg"
