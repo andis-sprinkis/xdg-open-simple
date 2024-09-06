@@ -137,7 +137,7 @@ xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
 # Get INI-format-like file (.desktop, mimeapps.list) value by it's key in a specified [Group]
 ini_get_val() {
-  file="$1" key="$2" group="$3" first="${4:-0}"
+  file="$1" key="$2" group="$3"
 
   is_tgt_group="0" result=""
   IFS=""
@@ -152,7 +152,7 @@ ini_get_val() {
       "${key}="*)
         [ "$is_tgt_group" = "0" ] && continue
         result="$(echo "$line" | cut -d= -f 2-)"
-        [ "$result" ] && [ "$first" = "1" ] && break
+        [ "$result" ] && break
       ;;
     esac
   done < "$file"
@@ -169,7 +169,7 @@ mimeapps_list_to_desktop_file_ids() {
 
   [ -f "$fpath_mimeapps" ] || return "1"
 
-  ids="$(ini_get_val "$fpath_mimeapps" "$mime" "Default Applications" "1")"
+  ids="$(ini_get_val "$fpath_mimeapps" "$mime" "Default Applications")"
 
   [ "$ids" ] || return "1"
 
