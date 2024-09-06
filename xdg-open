@@ -233,10 +233,9 @@ find_desktop_file() {
 
     [ -d "${dir}/applications" ] || continue
 
-    [ "${id#*-}" = "$id" ] || {
-      name_vendor="${id%-*}" name_app="${id#*-}"
-
-      fp="${dir}/applications/${name_vendor}/${name_app}"
+    prefix="${id#*-}"
+    [ "$prefix" = "$id" ] || {
+      fp="${dir}/applications/${prefix}/${id#*-}"
       [ -r "$fp" ] && { echo "$fp"; return; }
     }
 
