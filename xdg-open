@@ -318,7 +318,7 @@ for dir in $xdg_config_home $xdg_config_dirs; do
 done
 
 IFS=:
-for dir in $xdg_user_dir $xdg_system_dirs; do
+for dir in $xdg_system_dirs; do
   IFS="$IFS_"
 
   ids="$(mimeapps_list_to_desktop_file_ids "$mime" "${dir}/applications")"
