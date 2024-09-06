@@ -251,7 +251,7 @@ find_desktop_file() {
 
   IFS=:
   for dir in $xdg_user_dir $xdg_system_dirs; do
-  IFS="$IFS_"
+    IFS="$IFS_"
     [ -d "${dir}/applications" ] || continue
 
     # Check if desktop file ID contains -
