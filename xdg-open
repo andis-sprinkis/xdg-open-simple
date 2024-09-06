@@ -154,13 +154,11 @@ mimeapps_list_to_desktop_file_ids() {
 
   fpath_mimeapps="${dir}/mimeapps.list"
 
-  [ -f "$fpath_mimeapps" ] || return "1"
+  [ -f "$fpath_mimeapps" ] || return
 
   ids="$(ini_get_val "$fpath_mimeapps" "$mime" "Default Applications")"
 
-  [ "$ids" ] || return "1"
-
-  echo "$ids"
+  [ "$ids" ] && echo "$ids"
 }
 
 # $1: Desktop file path, $2: Target file path, $3: Target file URI
