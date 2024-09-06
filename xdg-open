@@ -148,24 +148,15 @@ ini_get_val() {
   [ "$result" ] && echo "$result"
 }
 
-# $1: MIME type, $2: mimeapps.list file directory
-mimeapps_list_to_desktop_file_ids() {
-  mime="$1" dir="$2"
+# $1: Desktop file path, $2: Target file path, $3: Target file URI
+open() {
+  target_fpath="$1" target_uri="$2" dir="$3" mime="$4"
 
   fpath_mimeapps="${dir}/mimeapps.list"
 
   [ -f "$fpath_mimeapps" ] || return
 
   ids="$(ini_get_val "$fpath_mimeapps" "$mime" "Default Applications")"
-
-  [ "$ids" ] && echo "$ids"
-}
-
-# $1: Desktop file path, $2: Target file path, $3: Target file URI
-open() {
-  target_fpath="$1" target_uri="$2" dir="$3" mime="$4"
-
-  ids="$(mimeapps_list_to_desktop_file_ids "$mime" "$dir")"
 
   [ "$ids" ] || return
 
