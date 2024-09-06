@@ -37,14 +37,16 @@ ln -s "../opt/xdg-open-simple/xdg-open" "xdg-open"
 ## Resources
 
 -   [xdg / xdg-utils · GitLab](https://gitlab.freedesktop.org/xdg/xdg-utils)
+-   [Association between MIME types and applications](https://specifications.freedesktop.org/mime-apps-spec/latest/)
+-   [Desktop Entry Specification](https://specifications.freedesktop.org/desktop-entry-spec/latest/)
 
 ---
 
-## How-to's
+### How-to's
 
 Tips for dealing with the Linux file-type vs. application associations. Not specific to this project itself - will work with the stock `xdg-utils` too.
 
-### Setting the user default file and URL associations
+#### Setting the user default file and URL associations
 
 `$HOME/.config/mimeapps.list`:
 
@@ -55,11 +57,10 @@ video/mp4=video.desktop
 ...
 ```
 
--   [Association between MIME types and applications](https://specifications.freedesktop.org/mime-apps-spec/latest/)
 
 The system `.desktop` files are in `/usr/share/applications`.
 
-### A user custom file handler
+#### A user custom file handler
 
 `$HOME/.local/share/applications/video.desktop`:
 
@@ -70,9 +71,7 @@ Name=Video player
 Exec=mpv --player-operation-mode=pseudo-gui -- %U
 ```
 
--   [Desktop Entry Specification](https://specifications.freedesktop.org/desktop-entry-spec/latest/)
-
-### Printing the file MIME type
+#### Printing the file MIME type
 
 ```sh
 file --brief --dereference --mime-type ./image.jpg
@@ -84,7 +83,7 @@ image/jpeg
 
 The URLs get the `x-scheme-handler/*` MIME type, with the URL prefix as the suffix.
 
-### Printing the known MIME types
+#### Printing the known MIME types
 
 ```sh
 find /usr/share/mime/ -type f -name '*.xml' | sed -e 's/\/usr\/share\/mime\///g' -e "s/\.xml$//g" | less
@@ -97,7 +96,7 @@ application/appinstaller.xml
 ...
 ```
 
-### Preventing _Mozilla Firefox_ from rewriting the user's `mimeapps.list` file
+#### Preventing _Mozilla Firefox_ from rewriting the user's `mimeapps.list` file
 
 ```sh
 echo > "$HOME/.mozilla/firefox/PROFILE.default-release/handlers.json'
