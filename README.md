@@ -8,7 +8,7 @@ Notable properties of this fork are:
     -   Auto-forwarding target file paths without a known handler to a web browser.
     -   Handling of the `$BROWSER` variable.
     -   Handling of any deprecated `mimeapps.list` and Desktop file search paths.
-    -   Auto-forwaring target file paths to desktop environment specific file opener utilities.
+    -   Auto-forwarding target file paths to desktop environment specific file opener utilities.
     -   Handling of `${XDG_DESKTOP_SESSION}-mimeapps.list`.
         -   Reason: `$XDG_DESKTOP_SESSION` value in production often doesn't map directly to the `xdg-open` search paths in the simple way it's described in the specification.
     -   Fallback to `mimeinfo.cache` for finding MIME-associated Desktop file IDs.
