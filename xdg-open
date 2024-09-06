@@ -170,9 +170,9 @@ open() {
 
         [ -d "${d}/applications" ] || continue
 
-        prefix="${id#*-}"
-        [ "$prefix" = "$id" ] || {
-          fp="${d}/applications/${prefix}/${id#*-}"
+        app="${id#*-}"
+        [ "$id" = "$app" ] || {
+          vendor="${id%-*}" fp="${d}/applications/${vendor}/${app}"
           [ -r "$fp" ] && { echo "$fp"; break; }
         }
 
@@ -261,11 +261,7 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
     }
   }
 
-  case "$file" in
-    -*)
-      file="$(printf "./%s" "$file")"
-    ;;
-  esac
+  [ "$file" = "${file#-}" ] || file="./${file}"
 
   file="$(readlink -f "$file")"
 
