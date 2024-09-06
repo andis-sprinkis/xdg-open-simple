@@ -191,7 +191,7 @@ open() {
 
     command="$(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry" | first_word)"
 
-    command -v "$command" > "/dev/null" || return
+    command -v "$command" > "/dev/null" || continue
 
     icon="$(ini_get_val "$fpath_desktop" "Icon" "Desktop Entry")"
     name="$(ini_get_val "$fpath_desktop" "Name" "Desktop Entry")"
@@ -210,7 +210,7 @@ open() {
           set -- "$@" "$arg"
         ;;
         %[fF])
-          # If there is only a target_url - return - this .desktop application can't handle it.
+          # If there is only a target_url, continue the loop. This .desktop application can't handle only the URL.
           [ "$target_fpath" ] || continue
           replaced="1" arg="$target_fpath"
           shift
