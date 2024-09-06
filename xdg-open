@@ -162,7 +162,7 @@ ini_get_val() {
 }
 
 # $1: MIME type, $2: mimeapps.list file directory
-mime_to_desktop_file_id() {
+mimeapps_to_desktop_file_id() {
   mime="$1" dir="$2"
 
   fpath_mimeapps="${dir}/mimeapps.list"
@@ -327,7 +327,7 @@ IFS=:
 for dir in $xdg_config_home $xdg_config_dirs; do
   IFS="$IFS_"
 
-  id="$(mime_to_desktop_file_id "$mime" "$dir")"
+  id="$(mimeapps_to_desktop_file_id "$mime" "$dir")"
 
   [ "$id" ] && open "$id" "$file" "${scheme:+$url}"
 done
@@ -336,7 +336,7 @@ IFS=:
 for dir in $xdg_user_dir $xdg_system_dirs; do
   IFS="$IFS_"
 
-  id="$(mime_to_desktop_file_id "$mime" "${dir}/applications")"
+  id="$(mimeapps_to_desktop_file_id "$mime" "${dir}/applications")"
 
   [ "$id" ] && open "$id" "$file" "${scheme:+$url}"
 done
@@ -345,11 +345,17 @@ IFS=:
 for dir in $xdg_user_dir $xdg_system_dirs; do
   IFS="$IFS_"
 
-  id="$(
-    grep "${mime}=" "${dir}/applications/mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
-  )"
+  ids="$(grep "${mime}=" "${dir}/applications/mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1)"
 
-  [ "$id" ] && open "$id" "$file" "${scheme:+$url}"
+  [ "$ids" ] && break
 done
+
+[ "$ids" ] && {
+  IFS=\;
+  for id in $ids; do
+    IFS="$IFS_"
+    open "$id" "$file" "${scheme:+$url}"
+  done
+}
 
 exit "3"
