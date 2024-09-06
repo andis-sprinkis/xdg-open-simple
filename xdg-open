@@ -136,8 +136,8 @@ ini_get_val() {
       ;;
       "${key}="*)
         [ "$is_tgt_group" = "0" ] && continue
-        result="$(echo "$line" | cut -d= -f 2-)"
-        [ "$result" ] && break
+        result="${line#*=}"
+        [ "$result" = "$line" ] || break
       ;;
     esac
   done < "$file"
