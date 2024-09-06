@@ -247,12 +247,12 @@ find_desktop_file() {
   done
 }
 
-is_file_url="0" has_url_scheme="0" file="" scheme="" mime=""
+is_file_url="0" file="" scheme="" mime=""
 
 echo "$url" | grep -q '^file://' && is_file_url="1"
-echo "$url" | LC_ALL="C" grep -Eq '^[[:alpha:]][[:alpha:][:digit:]+\.\-]*:' && has_url_scheme="1"
+scheme="$(echo "$url" | LC_ALL="C" sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
 
-if [ "$is_file_url" = "1" ] || [ "$has_url_scheme" = "0" ]; then
+if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
   file="$url"
 
   # Convert file URL to a percent-decoded path.
@@ -282,7 +282,6 @@ if [ "$is_file_url" = "1" ] || [ "$has_url_scheme" = "0" ]; then
 
   mime="$(file --brief --dereference --mime-type "$file" 2> "/dev/null" | sed "s/;.*//")"
 else
-  scheme="$(echo "$url" | LC_ALL="C" sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
   mime="${scheme:+"x-scheme-handler/${scheme}"}"
 fi
 
