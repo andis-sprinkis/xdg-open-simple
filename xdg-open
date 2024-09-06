@@ -70,9 +70,6 @@ EXIT CODES
     3
         A required tool could not be found.
 
-    4
-        The action failed.
-
     5
         No permission to read one of the files passed on the command line.
 
