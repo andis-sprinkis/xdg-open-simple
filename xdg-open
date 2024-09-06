@@ -165,7 +165,11 @@ mimeapps_list_to_desktop_file_ids() {
 
 # $1: Desktop file path, $2: Target file path, $3: Target file URI
 open() {
-  ids="$1" target_fpath="$2" target_uri="$3"
+  target_fpath="$1" target_uri="$2" dir="$3" mime="$4"
+
+  ids="$(mimeapps_list_to_desktop_file_ids "$mime" "$dir")"
+
+  [ "$ids" ] || return
 
   # $ids could be a ";" separated list of .desktop file IDs. Uses the first existant one.
   IFS=\;
@@ -305,27 +309,14 @@ IFS=:
 for dir in $xdg_config_home $xdg_config_dirs; do
   IFS="$IFS_"
 
-  ids="$(mimeapps_list_to_desktop_file_ids "$mime" "$dir")"
-
-  [ "$ids" ] && open "$ids" "$file" "${scheme:+$url}"
+  open "$file" "${scheme:+$url}" "$dir" "$mime"
 done
 
 IFS=:
 for dir in $xdg_system_dirs; do
   IFS="$IFS_"
 
-  ids="$(mimeapps_list_to_desktop_file_ids "$mime" "${dir}/applications")"
-
-  [ "$ids" ] && open "$ids" "$file" "${scheme:+$url}"
-done
-
-IFS=:
-for dir in $xdg_user_dir $xdg_system_dirs; do
-  IFS="$IFS_"
-
-  ids="$(grep "${mime}=" "${dir}/applications/mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1)"
-
-  [ "$ids" ] && open "$ids" "$file" "${scheme:+$url}"
+  open "$file" "${scheme:+$url}" "${dir}/applications" "$mime"
 done
 
 exit "3"
