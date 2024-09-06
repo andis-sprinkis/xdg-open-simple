@@ -124,9 +124,10 @@ xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 ini_get_val() {
   file="$1" key="$2" group="$3"
 
-  is_tgt_group="0" result=""
+  is_tgt_group="0"
   IFS=""
   while read -r line; do
+    IFS="$IFS_"
     case "$line" in
       "[${group}]")
         is_tgt_group="1"
@@ -136,14 +137,10 @@ ini_get_val() {
       ;;
       "${key}="*)
         [ "$is_tgt_group" = "0" ] && continue
-        result="${line#*=}"
-        break
+        echo "${line#*=}"; return
       ;;
     esac
   done < "$file"
-  IFS="$IFS_"
-
-  [ "$result" ] && echo "$result"
 }
 
 # $1: Target file path, $2: Target file URI, $3: mimeapps.list dir, $4: MIME type
