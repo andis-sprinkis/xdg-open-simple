@@ -346,7 +346,7 @@ for dir in $xdg_user_dir $xdg_system_dirs; do
   IFS="$IFS_"
 
   id="$(
-    grep "${mime}=" "${dir}/applications/defaults.list" "${dir}/applications/mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
+    grep "${mime}=" "${dir}/applications/mimeinfo.cache" 2> "/dev/null" | head -n 1 | cut -d '=' -f 2 | cut -d ';' -f 1
   )"
 
   [ "$id" ] && open "$id" "$file" "${scheme:+$url}"
