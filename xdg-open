@@ -116,19 +116,6 @@ first_word() { read first rest; echo "$first"; }
 # shellcheck disable=SC2162
 last_word() { read first rest; echo "$rest"; }
 
-# Prefixes a path with a "./" if it starts with a "-".
-# This is useful for programs to not confuse paths with options.
-unoption_path() {
-  case "$1" in
-    -*)
-      printf "./%s" "$1"
-    ;;
-    *)
-      printf "%s" "$1"
-    ;;
-  esac
-}
-
 # XDG directories
 xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
 xdg_config_dirs="${XDG_CONFIG_DIRS:-/etc/xdg}"
@@ -289,7 +276,13 @@ if [ "$is_file_url" = "1" ] || [ "$has_url_scheme" = "0" ]; then
     }
   }
 
-  file="$(readlink -f "$(unoption_path "$file")")"
+  case "$file" in
+    -*)
+      file="$(printf "./%s" "$file")"
+    ;;
+  esac
+
+  file="$(readlink -f "$file")"
 
   [ -e "$file" ] || exit "2"
   [ -r "$file" ] || exit "5"
