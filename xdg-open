@@ -155,7 +155,6 @@ open() {
 
   [ "$ids" ] || return
 
-  # $ids could be a ";" separated list of .desktop file IDs. Uses the first existant one.
   IFS=\;
   for id in $ids; do
     IFS="$IFS_"
@@ -188,8 +187,6 @@ open() {
     # shellcheck disable=SC2046
     set -- $(echo "$val_exec" | last_word)
 
-    # We need to replace any occurrence of "%f", "%F" and the like by the target file.
-    # We examine each argument and append the modified argument to the end then shift.
     args="$#" replaced="0"
     while [ "$args" -gt "0" ]; do
       case $1 in
@@ -201,7 +198,6 @@ open() {
           set -- "$@" "$arg"
         ;;
         %[Ff])
-          # If there is only a target_url, this .desktop application can't handle the target.
           [ "$target_fpath" ] || continue "2"
           replaced="1" arg="$target_fpath"
           shift
