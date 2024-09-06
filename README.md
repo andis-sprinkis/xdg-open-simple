@@ -4,7 +4,7 @@
 
 ## Noteworthy properties of this fork
 
--   [x] Several features and behaviors have been removed:
+-   [x] Several features and behaviors have been **removed**:
     -   Auto-forwarding target file paths without a known handler to a web browser.
     -   Handling of the `$BROWSER` variable.
     -   Handling of any deprecated `mimeapps.list` and Desktop file search paths.
