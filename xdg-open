@@ -269,7 +269,8 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
   [ -e "$file" ] || exit "2"
   [ -r "$file" ] || exit "5"
 
-  mime="$(file --brief --dereference --mime-type "$file" 2> "/dev/null" | cut -d\; -f1)"
+  mime="$(file --brief --dereference --mime-type "$file" 2> "/dev/null")"
+  mime="${mime%%;*}"
 else
   mime="${scheme:+"x-scheme-handler/${scheme}"}"
 fi
