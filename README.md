@@ -16,7 +16,7 @@
         -   Auto-forwarding target paths to desktop environment specific file openers. (Not in specifications.)
         -   Use of `<lowercased DE name>-mimeapps.list` (in specifciations), `<lowercased DE name>-mimeinfo.cache` (not in specifications).
 
-        **Reason:** Temporal work-arounds and data mappings are needed to support these, due to the lack of desktop environment vendor adherence to, or the lack of the definition within the XDG specifications. Are not required for providing the core functionality of this tool.
+        **Reason:** Temporal work-arounds and data mappings are needed to support these, due to the lack of desktop environment vendor adherence to, or the lack of the definition within the XDG specifications. Not required for providing the core functionality of this tool.
     -   Substituting `Name` (`%c`) and `Icon` (`%i`) field codes within the `Exec` key to pass program icon identifiers and localized program names to the applications. (In specifications.)
 
         **Reason:** Unlikely to be in use anymore. Out of the 100 Desktop files on my Linux system, none use these field codes.
