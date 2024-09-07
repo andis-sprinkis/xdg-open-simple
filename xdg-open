@@ -194,9 +194,8 @@ open() {
     while [ "$args" -gt "0" ]; do
       case $1 in
         %[Uu])
-          replaced="1"
           # When an URI is requested use it, otherwise fall back to the file path.
-          arg="${target_uri:-$target_fp}"
+          replaced="1" arg="${target_uri:-$target_fp}"
           shift
           set -- "$@" "$arg"
         ;;
