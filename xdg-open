@@ -138,16 +138,18 @@ ini_get_val() {
   IFS="$IFS_"
 }
 
+prev_ids=""
+
 # $1: Target file path, $2: Target file URI, $3: mimeapps.list dir, $4: MIME type, $5: Desktop file IDs
 open() {
-  target_fpath="$1" target_uri="$2" dir="$3" mime="$4" ids="$5"
+  target_fp="$1" target_uri="$2" dir="$3" mime="$4" ids="$5"
 
   [ "$dir" ] && {
-    fpath_mimeapps="${dir}/mimeapps.list"
+    fp_mimeapps="${dir}/mimeapps.list"
 
-    [ -f "$fpath_mimeapps" ] || return
+    [ -f "$fp_mimeapps" ] || return
 
-    ids="$(ini_get_val "$fpath_mimeapps" "$mime" "Default Applications")"
+    ids="$(ini_get_val "$fp_mimeapps" "$mime" "Default Applications")"
   }
 
   [ "$ids" ] || return
@@ -156,7 +158,11 @@ open() {
   for id in $ids; do
     IFS="$IFS_"
 
-    fpath_desktop="$(
+    echo "$prev_ids" | grep -xq "$id" && continue
+    prev_ids="${prev_ids}${prev_ids:+
+}${id}"
+
+    fp_desktop="$(
       IFS=:
       for d in $xdg_user_dir $xdg_system_dirs; do
         IFS="$IFS_"
@@ -174,9 +180,9 @@ open() {
       done
     )"
 
-    [ "$fpath_desktop" ] || continue
+    [ "$fp_desktop" ] || continue
 
-    val_exec="$(ini_get_val "$fpath_desktop" "Exec" "Desktop Entry")"
+    val_exec="$(ini_get_val "$fp_desktop" "Exec" "Desktop Entry")"
     command="$(echo "$val_exec" | first_word)"
 
     command -v "$command" > "/dev/null" || continue
@@ -190,13 +196,13 @@ open() {
         %[Uu])
           replaced="1"
           # When an URI is requested use it, otherwise fall back to the file path.
-          arg="${target_uri:-$target_fpath}"
+          arg="${target_uri:-$target_fp}"
           shift
           set -- "$@" "$arg"
         ;;
         %[Ff])
-          [ "$target_fpath" ] || continue "2"
-          replaced="1" arg="$target_fpath"
+          [ "$target_fp" ] || continue "2"
+          replaced="1" arg="$target_fp"
           shift
           set -- "$@" "$arg"
         ;;
@@ -209,7 +215,7 @@ open() {
       args="$((args - 1))"
     done
 
-    [ "$replaced" = "1" ] || set -- "$@" "${target_fpath:-$target_uri}"
+    [ "$replaced" = "1" ] || set -- "$@" "${target_fp:-$target_uri}"
 
     env "$command" "$@"
 
@@ -217,7 +223,7 @@ open() {
   done
 }
 
-target="$1" is_file_url="0" file="" mime=""
+target="$1" prev_ids="" is_file_url="0" file="" mime=""
 
 [ "$target" = "${target#file://}" ] || is_file_url="1"
 
@@ -280,7 +286,9 @@ IFS=:
 for dir in $xdg_user_dir $xdg_system_dirs; do
   IFS="$IFS_"
 
-  open "$file" "$url" "" "$mime" "$(ini_get_val "${dir}/applications/mimeinfo.cache" "$mime" "MIME Cache")"
+  fp_mime_cache="${dir}/applications/mimeinfo.cache"
+
+  [ -f "$fp_mime_cache" ] && open "$file" "$url" "" "$mime" "$(ini_get_val "$fp_mime_cache" "$mime" "MIME Cache")"
 done
 
 exit "3"
