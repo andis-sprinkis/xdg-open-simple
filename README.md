@@ -9,8 +9,8 @@
     -   Handling the `$BROWSER` variable.
     -   Handling any `mimeapps.list` and Desktop file search paths that have been deprecated.
     -   Auto-forwarding target file paths to desktop environment specific file openers.
-    -   Handling of `${XDG_DESKTOP_SESSION}-mimeapps.list`.
-        -   Reason: the lowercased `$XDG_DESKTOP_SESSION` value in several desktop environments doesn't map directly to the `xdg-open` search paths in the simple way it's described in the specification.
+    -   Handling of `${XDG_CURRENT_DESKTOP}-mimeapps.list`.
+        -   Reason: the lowercased `$XDG_CURRENT_DESKTOP` value in several desktop environments doesn't map directly to the `xdg-open` search paths in the simple way it's described in the specification.
     -   Substituting `Name` (`%c`) and `Icon` (`%i`) field codes within the `Exec` key.
         -   Reason: no application vendor uses this - out of the 100 Desktop files on my Linux system, none have these field codes in `Exec`.
 -   Support of the relative target file paths has been added.
