@@ -137,6 +137,7 @@ ini_get_val() {
       ;;
     esac
   done < "$file"
+  IFS="$IFS_"
 }
 
 # $1: Target file path, $2: Target file URI, $3: mimeapps.list dir, $4: MIME type, $5: Desktop file IDs
@@ -280,9 +281,7 @@ IFS=:
 for dir in $xdg_user_dir $xdg_system_dirs; do
   IFS="$IFS_"
 
-  ids="$(ini_get_val "${dir}/applications/mimeinfo.cache" "$mime" "MIME Cache")"
-
-  [ "$ids" ] && open "$file" "${scheme:+$url}" "" "$mime" "$ids"
+  open "$file" "${scheme:+$url}" "" "$mime" "$(ini_get_val "${dir}/applications/mimeinfo.cache" "$mime" "MIME Cache")"
 done
 
 exit "3"
