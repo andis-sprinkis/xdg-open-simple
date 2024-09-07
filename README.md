@@ -14,15 +14,14 @@
     -   Handling any `mimeapps.list` and Desktop file search paths that have been deprecated. (In specifications.)
     -   Desktop environment specific integrations.
         -   Auto-forwarding target paths to desktop environment specific file openers. (Not in specifications.)
-        -   Using the `<lowercased DE name>-mimeapps.list`. (In specifications.)
+        -   Use of `<lowercased DE name>-mimeapps.list` (in specifciations), `<lowercased DE name>-mimeinfo.cache` (not in specifications).
 
-        **Reason:** Temporal work-arounds and data mappings are needed to support these, due to the lack of software vendor adherence to, or the lack of the definition within the XDG specifications. Are not required for providing the core functionality of this tool.
+        **Reason:** Temporal work-arounds and data mappings are needed to support these, due to the lack of desktop environment vendor adherence to, or the lack of the definition within the XDG specifications. Are not required for providing the core functionality of this tool.
     -   Substituting `Name` (`%c`) and `Icon` (`%i`) field codes within the `Exec` key to pass program icon identifiers and localized program names to the applications. (In specifications.)
 
         **Reason:** Unlikely to be in use anymore. Out of the 100 Desktop files on my Linux system, none use these field codes.
 -   Support of the relative target file paths and URLs has been added.
--   Has no dependency on the `xdg-utils` and is a lot more concise than the original `xdg-open`.
--   Retains the original `xdg-open` exit codes, where applicable, for compatibility.
+-   Has no dependency on the `xdg-utils` scripts, but the presence of `xdg-utils` compatible `mimeinfo.cache` is required. A lot more concise than the original `xdg-open`. Retains the original `xdg-open` exit codes, where applicable, for compatibility.
 -   Adheres to the XDG specifications ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/), ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
 
 ## Installation
