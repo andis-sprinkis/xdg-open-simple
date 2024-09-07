@@ -138,6 +138,49 @@ ini_get_val() {
   IFS="$IFS_"
 }
 
+open_with_desktop_file() {
+  fp_desktop="$1"
+
+  [ -r "$fp_desktop" ] || return
+
+  val_exec="$(ini_get_val "$fp_desktop" "Exec" "Desktop Entry")"
+  command="$(echo "$val_exec" | first_word)"
+
+  command -v "$command" > "/dev/null" || return
+
+  # shellcheck disable=SC2046
+  set -- $(echo "$val_exec" | last_word)
+
+  args="$#" replaced="0"
+  while [ "$args" -gt "0" ]; do
+    case $1 in
+      %[Uu])
+        replaced="1" arg="${target_uri:-$target_fp}"
+        shift
+        set -- "$@" "$arg"
+      ;;
+      %[Ff])
+        [ "$target_fp" ] || return
+        replaced="1" arg="$target_fp"
+        shift
+        set -- "$@" "$arg"
+      ;;
+      *)
+        arg="$1"
+        shift
+        set -- "$@" "$arg"
+      ;;
+    esac
+    args="$((args - 1))"
+  done
+
+  [ "$replaced" = "1" ] || set -- "$@" "${target_fp:-$target_uri}"
+
+  env "$command" "$@"
+
+  exit "0"
+}
+
 prev_ids=""
 
 # $1: Target file path, $2: Target file URI, $3: mimeapps.list dir, $4: MIME type, $5: Desktop file IDs
@@ -162,62 +205,20 @@ open() {
     prev_ids="${prev_ids}${prev_ids:+
 }${id}"
 
-    fp_desktop="$(
-      IFS=:
-      for d in $xdg_user_dir $xdg_system_dirs; do
-        IFS="$IFS_"
+    IFS=:
+    for d in $xdg_user_dir $xdg_system_dirs; do
+      IFS="$IFS_"
 
-        [ -d "${d}/applications" ] || continue
+      [ -d "${d}/applications" ] || continue
 
-        app="${id#*-}"
-        [ "$id" = "$app" ] || {
-          vendor="${id%-*}" fp="${d}/applications/${vendor}/${app}"
-          [ -r "$fp" ] && { echo "$fp"; break; }
-        }
+      app="${id#*-}"
+      [ "$id" = "$app" ] || {
+        vendor="${id%-*}"
+        open_with_desktop_file "${d}/applications/${vendor}/${app}"
+      }
 
-        fp="${d}/applications/${id}"
-        [ -r "$fp" ] && { echo "$fp"; break; }
-      done
-    )"
-
-    [ "$fp_desktop" ] || continue
-
-    val_exec="$(ini_get_val "$fp_desktop" "Exec" "Desktop Entry")"
-    command="$(echo "$val_exec" | first_word)"
-
-    command -v "$command" > "/dev/null" || continue
-
-    # shellcheck disable=SC2046
-    set -- $(echo "$val_exec" | last_word)
-
-    args="$#" replaced="0"
-    while [ "$args" -gt "0" ]; do
-      case $1 in
-        %[Uu])
-          replaced="1" arg="${target_uri:-$target_fp}"
-          shift
-          set -- "$@" "$arg"
-        ;;
-        %[Ff])
-          [ "$target_fp" ] || continue "2"
-          replaced="1" arg="$target_fp"
-          shift
-          set -- "$@" "$arg"
-        ;;
-        *)
-          arg="$1"
-          shift
-          set -- "$@" "$arg"
-        ;;
-      esac
-      args="$((args - 1))"
+      open_with_desktop_file "${d}/applications/${id}"
     done
-
-    [ "$replaced" = "1" ] || set -- "$@" "${target_fp:-$target_uri}"
-
-    env "$command" "$@"
-
-    exit "0"
   done
 }
 
