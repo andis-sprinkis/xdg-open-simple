@@ -21,7 +21,7 @@
 
         **Reason:** Unlikely to be in use anymore. Out of the 100 Desktop files on my Linux system, none use these field codes.
 -   Support of the relative target file paths and URLs has been added.
--   From `xdg-utils` system package substitutes only the `xdg-open` script. Does not call other `xdg-utils` scripts, but the presence of `xdg-utils` package is expected (for `mimeinfo.cache` generation). A lot more concise than the original `xdg-open`. Retains the original `xdg-open` exit codes, where applicable, for compatibility.
+-   From `xdg-utils` system package substitutes only the `xdg-open` script. Does not call other `xdg-utils` scripts, but the presence of `xdg-utils` package is expected (for `mimeinfo.cache` generation). A lot more concise than the original `xdg-open`. Retains the applicable `xdg-open` exit codes.
 -   Adheres to the XDG specifications ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/), ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
 
 ## Installation
