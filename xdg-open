@@ -143,8 +143,8 @@ ini_get_val() {
 open() {
   target_fpath="$1" target_uri="$2" dir="$3" mime="$4" ids="$5"
 
-  [ "$ids" ] || {
-    fpath_mimeapps="${dir}/mimeapps.list"
+  [ "$dir" ] && {
+    fpath_mimeapps="${dir}/mimeapps.list}"
 
     [ -f "$fpath_mimeapps" ] || return
 
