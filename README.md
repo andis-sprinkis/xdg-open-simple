@@ -7,7 +7,7 @@
 -   **Several features and behaviors have been removed:**
     -   Auto-forwarding target paths without a known MIME handler to a web browser. (Not in specifications.)
 
-        **Reason:** Obfuscates that there is a missing MIME handler in the system. Often results in just creating copies of files in the downloads directory.
+        **Reason:** Obfuscates that there is a missing MIME handler in the system. Often results in just creating copies of target files in the downloads directory.
     -   Handling the `$BROWSER` variable. (Not in specifications.)
 
         **Reason:** A legacy convention of setting the default web browser on some Linux systems.
