@@ -20,7 +20,7 @@
     -   Substituting `Name` (`%c`) and `Icon` (`%i`) field codes within the `Exec` key to pass program icon identifiers and localized program names to the applications. (In specifications.)
 
         **Reason:** Unlikely to be in use anymore. Out of the 100 Desktop files on my Linux system, none use these field codes.
--   Support of the relative target file paths has been added.
+-   Support of the relative target file paths and URLs has been added.
 -   Has no dependency on the `xdg-utils` and is a lot more concise than the original `xdg-open`.
 -   Retains the original `xdg-open` exit codes, where applicable, for compatibility.
 -   Adheres to the XDG specifications ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/), ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
