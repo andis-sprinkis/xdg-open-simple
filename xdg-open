@@ -117,7 +117,7 @@ xdg_config_dirs="${XDG_CONFIG_DIRS:-/etc/xdg}"
 xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
 xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
-# Get INI-format-like file (.desktop, mimeapps.list) value by it's key in a specified [Group]
+# Get INI-format-like file (.desktop, mimeapps.list, mimeinfo.cache) value by it's key in a specified [Group]
 ini_get_val() {
   file="$1" key="$2" group="$3"
 
@@ -139,15 +139,17 @@ ini_get_val() {
   done < "$file"
 }
 
-# $1: Target file path, $2: Target file URI, $3: mimeapps.list dir, $4: MIME type
+# $1: Target file path, $2: Target file URI, $3: mimeapps.list dir, $4: MIME type, $5: Desktop file IDs
 open() {
-  target_fpath="$1" target_uri="$2" dir="$3" mime="$4"
+  target_fpath="$1" target_uri="$2" dir="$3" mime="$4" ids="$5"
 
-  fpath_mimeapps="${dir}/mimeapps.list"
+  [ "$ids" ] || {
+    fpath_mimeapps="${dir}/mimeapps.list"
 
-  [ -f "$fpath_mimeapps" ] || return
+    [ -f "$fpath_mimeapps" ] || return
 
-  ids="$(ini_get_val "$fpath_mimeapps" "$mime" "Default Applications")"
+    ids="$(ini_get_val "$fpath_mimeapps" "$mime" "Default Applications")"
+  }
 
   [ "$ids" ] || return
 
@@ -264,14 +266,23 @@ IFS=:
 for dir in $xdg_config_home $xdg_config_dirs; do
   IFS="$IFS_"
 
-  open "$file" "${scheme:+$url}" "$dir" "$mime"
+  open "$file" "${scheme:+$url}" "$dir" "$mime" ""
 done
 
 IFS=:
 for dir in $xdg_system_dirs; do
   IFS="$IFS_"
 
-  open "$file" "${scheme:+$url}" "${dir}/applications" "$mime"
+  open "$file" "${scheme:+$url}" "${dir}/applications" "$mime" ""
+done
+
+IFS=:
+for dir in $xdg_user_dir $xdg_system_dirs; do
+  IFS="$IFS_"
+
+  ids="$(ini_get_val "${dir}/applications/mimeinfo.cache" "$mime" "MIME Cache")"
+
+  [ "$ids" ] && open "$file" "${scheme:+$url}" "" "$mime" "$ids"
 done
 
 exit "3"
