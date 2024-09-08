@@ -178,7 +178,9 @@ open_with_desktop_file() {
 
   [ "$replaced" = "1" ] || set -- "$@" "${target_fp:-$target_uri}"
 
+  set +e
   env "$command" "$@"
+  set -e
 
   exit "0"
 }
