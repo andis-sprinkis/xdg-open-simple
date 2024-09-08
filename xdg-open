@@ -103,13 +103,13 @@ done
 
 { [ "$1" = "" ] || [ "$#" -gt "1" ]; } && { echo "$help_info" 1>&2; exit "1"; }
 
-# The first_word, last_word functions handle backslashes, but not quote marks.
+# The first_word, except_first_word functions handle backslashes, but not quote marks.
 
 # shellcheck disable=SC2162
 first_word() { read first rest; echo "$first"; }
 
 # shellcheck disable=SC2162
-last_word() { read first rest; echo "$rest"; }
+except_first_word() { read first rest; echo "$rest"; }
 
 # XDG directories
 xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
@@ -151,7 +151,7 @@ open_with_desktop_file() {
   command -v "$command" > "/dev/null" || return "0"
 
   # shellcheck disable=SC2046
-  set -- $(echo "$val_exec" | last_word)
+  set -- $(echo "$val_exec" | except_first_word)
 
   args="$#" replaced="0"
   while [ "$args" -gt "0" ]; do
