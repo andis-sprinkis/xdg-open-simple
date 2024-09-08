@@ -1,4 +1,6 @@
 #!/usr/bin/env sh
+set -eu
+
 #   xdg-open-simple xdg-open
 #
 #   Utility script to open a file or URI in the user's preferred application.
@@ -131,7 +133,7 @@ ini_get_val() {
         is_tgt_group="0"
       ;;
       "${key}="*)
-        [ "$is_tgt_group" = "1" ] && { echo "${line#*=}"; return; }
+        [ "$is_tgt_group" = "1" ] && { echo "${line#*=}"; return "0"; }
       ;;
     esac
   done < "$file"
@@ -141,12 +143,12 @@ ini_get_val() {
 open_with_desktop_file() {
   fp_desktop="$1"
 
-  [ -r "$fp_desktop" ] || return
+  [ -r "$fp_desktop" ] || return "0"
 
   val_exec="$(ini_get_val "$fp_desktop" "Exec" "Desktop Entry")"
   command="$(echo "$val_exec" | first_word)"
 
-  command -v "$command" > "/dev/null" || return
+  command -v "$command" > "/dev/null" || return "0"
 
   # shellcheck disable=SC2046
   set -- $(echo "$val_exec" | last_word)
@@ -160,7 +162,7 @@ open_with_desktop_file() {
         set -- "$@" "$arg"
       ;;
       %[Ff])
-        [ "$target_fp" ] || return
+        [ "$target_fp" ] || return "0"
         replaced="1" arg="$target_fp"
         shift
         set -- "$@" "$arg"
@@ -190,12 +192,12 @@ open() {
   [ "$dir" ] && {
     fp_mimeapps="${dir}/mimeapps.list"
 
-    [ -f "$fp_mimeapps" ] || return
+    [ -f "$fp_mimeapps" ] || return "0"
 
     ids="$(ini_get_val "$fp_mimeapps" "$mime" "Default Applications")"
   }
 
-  [ "$ids" ] || return
+  [ "$ids" ] || return "0"
 
   IFS=\;
   for id in $ids; do
@@ -248,7 +250,9 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
 
   [ "$file" = "${file#-}" ] || file="./${file}"
 
+  set +e
   file="$(readlink -f "$file")"
+  set -e
 
   [ -e "$file" ] || exit "2"
   [ -r "$file" ] || exit "5"
