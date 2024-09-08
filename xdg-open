@@ -192,9 +192,7 @@ open_with_desktop_file() {
     set -- "$@" "${target_fp:-$target_uri}"
   fi
 
-  set +e
-  env "$command" "$@"
-  set -e
+  set +e; env "$command" "$@"; set -e
 
   exit "0"
 }
@@ -279,9 +277,7 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
     file="./${file}"
   fi
 
-  set +e
-  file="$(readlink -f "$file")"
-  set -e
+  file="$(set +e; readlink -f "$file"; set -e)"
 
   if [ ! -e "$file" ]; then
     exit "2"
