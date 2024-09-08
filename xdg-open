@@ -101,7 +101,9 @@ while getopts :h name; do
   esac
 done
 
-{ [ "$1" = "" ] || [ "$#" -gt "1" ]; } && { echo "$help_info" 1>&2; exit "1"; }
+if [ "$1" = "" ] || [ "$#" -gt "1" ]; then
+  echo "$help_info" 1>&2; exit "1"
+fi
 
 # The first_word, except_first_word functions handle backslashes, but not quote marks.
 
@@ -133,7 +135,10 @@ ini_get_val() {
         is_tgt_group="0"
       ;;
       "${key}="*)
-        [ "$is_tgt_group" = "1" ] && { echo "${line#*=}"; return "0"; }
+        if [ "$is_tgt_group" = "1" ]; then
+          echo "${line#*=}"
+          return
+        fi
       ;;
     esac
   done < "$file"
@@ -176,7 +181,9 @@ open_with_desktop_file() {
     args="$((args - 1))"
   done
 
-  [ "$replaced" = "1" ] || set -- "$@" "${target_fp:-$target_uri}"
+  if [ "$replaced" = "0" ]; then
+    set -- "$@" "${target_fp:-$target_uri}"
+  fi
 
   set +e
   env "$command" "$@"
@@ -191,13 +198,13 @@ prev_ids=""
 open() {
   target_fp="$1" target_uri="$2" dir="$3" mime="$4" ids="$5"
 
-  [ "$dir" ] && {
+  if [ "$dir" ]; then
     fp_mimeapps="${dir}/mimeapps.list"
 
     [ -f "$fp_mimeapps" ] || return "0"
 
     ids="$(ini_get_val "$fp_mimeapps" "$mime" "Default Applications")"
-  }
+  fi
 
   [ "$ids" ] || return "0"
 
@@ -205,7 +212,10 @@ open() {
   for id in $ids; do
     IFS="$IFS_"
 
-    echo "$prev_ids" | grep -xq "$id" && continue
+    if echo "$prev_ids" | grep -xq "$id"; then
+      continue
+    fi
+
     prev_ids="${prev_ids}${prev_ids:+
 }${id}"
 
@@ -213,13 +223,15 @@ open() {
     for d in $xdg_user_dir $xdg_system_dirs; do
       IFS="$IFS_"
 
-      [ -d "${d}/applications" ] || continue
+      if [ ! -d "${d}/applications" ]; then
+        continue
+      fi
 
       app="${id#*-}"
-      [ "$id" = "$app" ] || {
+      if [ "$id" != "$app" ]; then
         vendor="${id%-*}"
         open_with_desktop_file "${d}/applications/${vendor}/${app}"
-      }
+      fi
 
       open_with_desktop_file "${d}/applications/${id}"
     done
@@ -237,20 +249,22 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
   file="$target"
 
   # Convert file URL to a percent-decoded path.
-  [ "$is_file_url" = "1" ] && {
+  if [ "$is_file_url" = "1" ]; then
     file="${file#file://localhost}"
     file="${file#file://"$(uname -n)"}"
     file="${file#file://}"
 
-    [ "$file" ] && {
+    if [ "$file" ]; then
       file="${file%%#*}"
       file="${file%%\?*}"
       file="$(echo "$file" | sed -e 's@%\([a-f0-9A-F]\{2\}\)@\\x\1@g')"
       file="$(printf "$file")"
-    }
-  }
+    fi
+  fi
 
-  [ "$file" = "${file#-}" ] || file="./${file}"
+  if [ "$file" != "${file#-}" ]; then
+    file="./${file}"
+  fi
 
   set +e
   file="$(readlink -f "$file")"
@@ -293,7 +307,9 @@ for dir in $xdg_user_dir $xdg_system_dirs; do
 
   fp_mime_cache="${dir}/applications/mimeinfo.cache"
 
-  [ -f "$fp_mime_cache" ] && open "$file" "$url" "" "$mime" "$(ini_get_val "$fp_mime_cache" "$mime" "MIME Cache")"
+  if [ -f "$fp_mime_cache" ]; then
+    open "$file" "$url" "" "$mime" "$(ini_get_val "$fp_mime_cache" "$mime" "MIME Cache")"
+  fi
 done
 
 exit "3"
