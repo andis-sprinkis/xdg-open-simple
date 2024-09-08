@@ -137,7 +137,7 @@ ini_get_val() {
       "${key}="*)
         if [ "$is_tgt_group" = "1" ]; then
           echo "${line#*=}"
-          return
+          return "0"
         fi
       ;;
     esac
@@ -148,12 +148,16 @@ ini_get_val() {
 open_with_desktop_file() {
   fp_desktop="$1"
 
-  [ -r "$fp_desktop" ] || return "0"
+  if [ ! -r "$fp_desktop" ]; then
+    return "0"
+  fi
 
   val_exec="$(ini_get_val "$fp_desktop" "Exec" "Desktop Entry")"
   command="$(echo "$val_exec" | first_word)"
 
-  command -v "$command" > "/dev/null" || return "0"
+  if ! command -v "$command" > "/dev/null"; then
+    return "0"
+  fi
 
   # shellcheck disable=SC2046
   set -- $(echo "$val_exec" | except_first_word)
@@ -167,7 +171,10 @@ open_with_desktop_file() {
         set -- "$@" "$arg"
       ;;
       %[Ff])
-        [ "$target_fp" ] || return "0"
+        if [ -z "$target_fp" ]; then
+          return "0"
+        fi
+
         replaced="1" arg="$target_fp"
         shift
         set -- "$@" "$arg"
@@ -201,12 +208,16 @@ open() {
   if [ "$dir" ]; then
     fp_mimeapps="${dir}/mimeapps.list"
 
-    [ -f "$fp_mimeapps" ] || return "0"
+    if [ ! -f "$fp_mimeapps" ]; then
+      return "0"
+    fi
 
     ids="$(ini_get_val "$fp_mimeapps" "$mime" "Default Applications")"
   fi
 
-  [ "$ids" ] || return "0"
+  if [ -z "$ids" ]; then
+    return "0"
+  fi
 
   IFS=\;
   for id in $ids; do
@@ -240,7 +251,9 @@ open() {
 
 target="$1" prev_ids="" is_file_url="0" file="" mime=""
 
-[ "$target" = "${target#file://}" ] || is_file_url="1"
+if [ "$target" != "${target#file://}" ]; then 
+  is_file_url="1"
+fi
 
 scheme="$(echo "$target" | LC_ALL="C" sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
 url="${scheme:+$target}"
@@ -270,8 +283,13 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
   file="$(readlink -f "$file")"
   set -e
 
-  [ -e "$file" ] || exit "2"
-  [ -r "$file" ] || exit "5"
+  if [ ! -e "$file" ]; then
+    exit "2"
+  fi
+
+  if [ ! -r "$file" ]; then
+    exit "5"
+  fi
 
   mime="$(file --brief --dereference --mime-type "$file" 2> "/dev/null")"
   mime="${mime%%;*}"
