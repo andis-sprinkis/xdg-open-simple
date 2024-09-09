@@ -249,7 +249,7 @@ open() {
 
 target="$1" prev_ids="" is_file_url="0" file="" mime=""
 
-if [ "$target" != "${target#file://}" ]; then 
+if [ "$target" != "${target#file://}" ]; then
   is_file_url="1"
 fi
 
