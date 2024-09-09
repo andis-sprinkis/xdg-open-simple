@@ -101,7 +101,7 @@ while getopts :h name; do
   esac
 done
 
-if [ "$1" = "" ] || [ "$#" -gt "1" ]; then
+if [ -z "${1:-""}" ] || [ "$#" -gt "1" ]; then
   echo "$help_info" 1>&2; exit "1"
 fi
 
@@ -121,7 +121,7 @@ xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
 # Get INI-format-like file (.desktop, mimeapps.list, mimeinfo.cache) value by it's key in a specified [Group]
 ini_get_val() {
-  file="$1" key="$2" group="$3"
+  file="${1:-""}" key="${2:-""}" group="${3:-""}"
 
   is_tgt_group="0"
   IFS=""
@@ -146,7 +146,7 @@ ini_get_val() {
 }
 
 open_with_desktop_file() {
-  fp_desktop="$1"
+  fp_desktop="${1:-""}"
 
   if [ ! -r "$fp_desktop" ]; then
     return "0"
@@ -201,7 +201,7 @@ prev_ids=""
 
 # $1: Target file path, $2: Target file URI, $3: mimeapps.list dir, $4: MIME type, $5: Desktop file IDs
 open() {
-  target_fp="$1" target_uri="$2" dir="$3" mime="$4" ids="$5"
+  target_fp="${1:-""}" target_uri="${2:-""}" dir="${3:-""}" mime="${4:-""}" ids="${5:-""}"
 
   if [ "$dir" ]; then
     fp_mimeapps="${dir}/mimeapps.list"
