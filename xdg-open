@@ -105,6 +105,12 @@ if [ -z "${1:-""}" ] || [ "$#" -gt "1" ]; then
   echo "$help_info" 1>&2; exit "1"
 fi
 
+# XDG directories
+xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+xdg_config_dirs="${XDG_CONFIG_DIRS:-/etc/xdg}"
+xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
+xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
+
 # The first_word, except_first_word functions handle backslashes, but not quote marks.
 
 # shellcheck disable=SC2162
@@ -112,12 +118,6 @@ first_word() { read first rest; echo "$first"; }
 
 # shellcheck disable=SC2162
 except_first_word() { read first rest; echo "$rest"; }
-
-# XDG directories
-xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
-xdg_config_dirs="${XDG_CONFIG_DIRS:-/etc/xdg}"
-xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
-xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
 
 # Get INI-format-like file (.desktop, mimeapps.list, mimeinfo.cache) value by it's key in a specified [Group]
 ini_get_val() {
