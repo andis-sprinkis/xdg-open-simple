@@ -1,6 +1,6 @@
 # xdg-open-simple
 
-`xdg-open-simple` is a minimal fork of the `xdg-open` - the default utility of opening files and URLs on many Linux & Unix-like desktop operating systems.
+`xdg-open-simple` is a minimal fork of the `xdg-open` (the default utility of opening files and URLs on many Linux & Unix-like desktop operating systems).
 
 ## Properties of this fork
 
