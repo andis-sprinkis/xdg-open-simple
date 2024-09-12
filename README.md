@@ -4,25 +4,27 @@
 
 ## Properties of this fork
 
--   **Several features and behaviors have been removed:**
+-   Not an attempt to reinvent how `xdg-open` works.
+
+    Adheres to the XDG specifications ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/), ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
+-   **Original `xdg-open` features and behaviors have been removed:**
     -   Auto-forwarding target paths without a known MIME handler to a web browser. (Not in specifications.)
 
-        **Reason:** Obfuscates that there is a missing MIME handler on the system. Often results in just creating copies of target files in the browser's downloads directory.
+        **Reason:** Obfuscates that there is a missing MIME handler on the system. Often just results in creating needless target file copies in the downloads directory.
     -   Handling the `$BROWSER` variable. (Not in specifications.)
 
-        **Reason:** A legacy convention of setting the default web browser on some Linux systems.
+        **Reason:** A legacy convention of setting the default web browser on some Linux systems. Redundant and overlapping functionality.
     -   Handling any `mimeapps.list` and Desktop file search paths that have been deprecated. (In specifications.)
     -   Desktop environment specific integrations.
         -   Auto-forwarding target paths to desktop environment specific file openers. (Not in specifications.)
         -   Use of `<lowercased DE name>-mimeapps.list` (in specifications), `<lowercased DE name>-mimeinfo.cache` (not in specifications).
 
-        **Reason:** Temporal work-arounds and data mappings are needed to support these, due to the lack of desktop environment vendor adherence to, or the lack of the definition within the XDG specifications. Not required for providing the core functionality of this tool.
+        **Reason:** Temporal work-arounds and data mappings are needed to support these, due to the lack of desktop environment vendor adherence to, or the lack of the definition in the XDG specifications. Not required for providing the core functionality of this tool.
     -   Substituting `Name` (`%c`) and `Icon` (`%i`) field codes within the `Exec` key to pass program icon identifiers and localized program names to the applications. (In specifications.)
 
         **Reason:** Unlikely to be in use anymore. Out of the 100 Desktop files on my Linux system, none use these field codes.
 -   Support of the relative target file paths and URLs has been added.
--   From `xdg-utils` system package substitutes only the `xdg-open`. Does not call `xdg-utils` scripts, but the presence of `xdg-utils` is expected (for `mimeinfo.cache` generation). A lot more concise than the original `xdg-open`. Retains the original applicable `xdg-open` exit codes.
--   Adheres to the XDG specifications ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/), ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
+-   From `xdg-utils` system package substitutes only the `xdg-open`. Presence of `xdg-utils` is expected for `mimeinfo.cache` generation. A lot more concise than the original `xdg-open`. Retains the original applicable `xdg-open` exit codes.
 
 ## Installation
 
