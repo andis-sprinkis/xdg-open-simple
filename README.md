@@ -15,7 +15,7 @@
 
         **Reason:** A legacy convention of setting the default web browser on some Linux systems. Redundant and overlapping functionality.
     -   Handling any `mimeapps.list` and Desktop file search paths that have been deprecated. (In specifications.)
-    -   Desktop environment specific integrations.
+    -   Desktop environment specific integrations:
         -   Auto-forwarding target paths to desktop environment specific file openers. (Not in specifications.)
         -   Use of `<lowercased DE name>-mimeapps.list` (in specifications), `<lowercased DE name>-mimeinfo.cache` (not in specifications).
 
