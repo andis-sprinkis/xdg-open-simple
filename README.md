@@ -7,7 +7,7 @@
 -   **Not** an attempt to reinvent how `xdg-open` works.
 
     Adheres to the XDG specifications ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/), ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
--   **Original `xdg-open` features and behaviors have been removed:**
+-   **Some of the `xdg-open` features and behaviors have been removed:**
     -   Auto-forwarding target paths without a known MIME handler to a web browser. (Not in specifications.)
 
         **Reason:** Obfuscates that there is a missing MIME handler on the system. Often just results in creating needless target file copies in the downloads directory.
