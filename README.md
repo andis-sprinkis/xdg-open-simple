@@ -13,7 +13,7 @@
         **Reason:** Obfuscates that there is a missing MIME handler on the system. Often just results in creating needless target file copies in the downloads directory.
     -   Handling the `$BROWSER` variable. (Not in specifications.)
 
-        **Reason:** A legacy convention of setting the default web browser on some Linux systems. Redundant and overlapping functionality.
+        **Reason:** A legacy convention of setting the default web browser on some Linux systems. Redundant, overlaps with the core functionality of `xdg-open`.
     -   Handling any `mimeapps.list` and Desktop file search paths that have been deprecated. (In specifications.)
     -   Desktop environment specific integrations:
         -   Auto-forwarding target paths to desktop environment specific file openers. (Not in specifications.)
