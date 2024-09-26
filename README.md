@@ -10,7 +10,7 @@
 -   **Some of the `xdg-open` features and behaviors have been removed:**
     -   Auto-forwarding target paths without a known MIME handler to a web browser. (Not in specifications.)
 
-        **Reason:** Obfuscates that there is a missing MIME handler on the system. Often just results in creating needless target file copies in the downloads directory.
+        **Reason:** Obfuscates that there is a missing MIME handler on the system. Often just results in creating the target file copies in the browser downloads directory.
     -   Handling the `$BROWSER` variable. (Not in specifications.)
 
         **Reason:** A legacy convention of setting the default web browser on some Linux systems. Redundant, overlaps with the core functionality of `xdg-open`.
