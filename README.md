@@ -10,19 +10,34 @@
 -   **Some of the `xdg-open` features and behaviors have been removed:**
     -   Auto-forwarding target paths without a known MIME handler to a web browser. (Not in specifications.)
 
-        **Reason:** Obfuscates that there is a missing MIME handler on the system. Often just results in creating the target file copies in the browser downloads directory.
+        Reasons:
+        
+        1. Obfuscates that there is a missing MIME handler on the system.
+        1. Often just results in creating the target file copies in the browser downloads directory.
+  
     -   Handling the `$BROWSER` variable. (Not in specifications.)
 
-        **Reason:** A legacy convention of setting the default web browser on some Linux systems. Redundant, overlaps with the core functionality of `xdg-open`.
+        Reasons:
+        
+        1. A legacy convention of setting the default web browser on some Linux systems.
+        1. Redundant, overlaps with the core functionality of `xdg-open`.
+           
     -   Handling any `mimeapps.list` and Desktop file search paths that have been deprecated. (In specifications.)
     -   Desktop environment specific integrations:
         -   Auto-forwarding target paths to desktop environment specific file openers. (Not in specifications.)
         -   Use of `<lowercased DE name>-mimeapps.list` (in specifications), `<lowercased DE name>-mimeinfo.cache` (not in specifications).
 
-        **Reason:** Temporal work-arounds and data mappings are needed to identify the desktop environments, due to the lack of desktop environment vendor adherence to, or the lack of the definition in the XDG specifications. Not required for providing the core functionality of this tool.
+        Reasons:
+        
+        1. Temporal work-arounds and data mappings are needed to identify the desktop environments, due to the lack of desktop environment vendor adherence to, or the lack of the definition in the XDG specifications.
+        1. Not required for providing the core functionality of this tool.
+           
     -   Substituting `Name` (`%c`) and `Icon` (`%i`) field codes within the `Exec` key to pass program icon identifiers and localized program names to the applications. (In specifications.)
 
-        **Reason:** Unlikely to be in use anymore. Out of the 100 Desktop files on my Linux system, none use these field codes.
+        Reason:
+        
+        1. Unlikely to be in use anymore. Out of the 100 Desktop files on my Linux system, none use these field codes.
+           
 -   Support of the relative target file paths and URLs has been added.
 -   From `xdg-utils` system package substitutes only the `xdg-open`, not it's other tools. Retains the original applicable `xdg-open` exit codes.
 
