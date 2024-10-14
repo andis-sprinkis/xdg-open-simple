@@ -162,9 +162,9 @@ open_with_desktop_file() {
   # shellcheck disable=SC2046
   set -- $(echo "$val_exec" | except_first_word)
 
-  args="$#" replaced="0"
-  while [ "$args" -gt "0" ]; do
-    case $1 in
+  args_count="$#" replaced="0"
+  while [ "$args_count" -gt "0" ]; do
+    case "$1" in
       %[Uu])
         replaced="1" arg="${target_uri:-$target_fp}"
         shift
@@ -185,7 +185,7 @@ open_with_desktop_file() {
         set -- "$@" "$arg"
       ;;
     esac
-    args="$((args - 1))"
+    args_count="$((args_count - 1))"
   done
 
   if [ "$replaced" = "0" ]; then
