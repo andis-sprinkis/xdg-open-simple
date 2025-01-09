@@ -298,9 +298,9 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
 
     if explorer.exe "$file"; then
       exit "0"
-    else
-      exit "4"
     fi
+
+    exit "4"
   fi
 
   file="$(readlink -f "$file")"
@@ -323,9 +323,9 @@ else
 
     if rundll32.exe "url.dll,FileProtocolHandler" "$target"; then
       exit "0"
-    else
-      exit "4"
     fi
+
+    exit "4"
   fi
 
   mime="${scheme:+"x-scheme-handler/${scheme}"}"
