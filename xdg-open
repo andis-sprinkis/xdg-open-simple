@@ -303,7 +303,7 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
     fi
   fi
 
-  file="$(set +e; readlink -f "$file"; set -e)"
+  file="$(readlink -f "$file")"
 
   if [ ! -e "$file" ]; then
     exit "2"
