@@ -72,6 +72,9 @@ EXIT CODES
     3
         A required tool could not be found.
 
+    4
+        The action failed.
+
     5
         No permission to read one of the files passed on the command line.
 
@@ -247,7 +250,11 @@ open() {
   done
 }
 
-target="$1" is_file_url="0" file="" mime=""
+target="$1" is_file_url="0" file="" mime="" is_wsl="0"
+
+if grep -q "microsoft" "/proc/version"; then
+  is_wsl="1"
+fi
 
 if [ "$target" != "${target#file://}" ]; then
   is_file_url="1"
@@ -274,6 +281,14 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
     fi
   fi
 
+  if [ "$is_wsl" = "1" ]; then
+    file="$(set +e; wslpath -aw "$file"; set -e)"
+
+    if [ "$?" != "0" ]; then
+      exit "4"
+    fi
+  fi
+
   if [ "$file" != "${file#-}" ]; then
     file="./${file}"
   fi
@@ -288,9 +303,33 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
     exit "5"
   fi
 
+  if [ "$is_wsl" = "1" ]; then
+    if ! command -v "explorer.exe" > "/dev/null"; then
+      exit "3"
+    fi
+
+    if explorer.exe "$file"; then
+      exit "0"
+    else
+      exit "4"
+    fi
+  fi
+
   mime="$(file --brief --dereference --mime-type "$file" 2> "/dev/null")"
   mime="${mime%%;*}"
 else
+  if [ "$is_wsl" = "1" ]; then
+    if ! command -v "rundll32.exe" > "/dev/null"; then
+      exit "3"
+    fi
+
+    if rundll32.exe "url.dll,FileProtocolHandler" "$target"; then
+      exit "0"
+    else
+      exit "4"
+    fi
+  fi
+
   mime="${scheme:+"x-scheme-handler/${scheme}"}"
 fi
 
