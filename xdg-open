@@ -281,16 +281,26 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
     fi
   fi
 
-  if [ "$is_wsl" = "1" ]; then
-    file="$(set +e; wslpath -aw "$file"; set -e)"
-
-    if [ "$?" != "0" ]; then
-      exit "4"
-    fi
-  fi
-
   if [ "$file" != "${file#-}" ]; then
     file="./${file}"
+  fi
+
+  if [ "$is_wsl" = "1" ]; then
+    file="$(wslpath -aw "$file")"
+
+    if [ ! "$file" ]; then
+      exit "2"
+    fi
+
+    if ! command -v "explorer.exe" > "/dev/null"; then
+      exit "3"
+    fi
+
+    if explorer.exe "$file"; then
+      exit "0"
+    else
+      exit "4"
+    fi
   fi
 
   file="$(set +e; readlink -f "$file"; set -e)"
@@ -301,18 +311,6 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
 
   if [ ! -r "$file" ]; then
     exit "5"
-  fi
-
-  if [ "$is_wsl" = "1" ]; then
-    if ! command -v "explorer.exe" > "/dev/null"; then
-      exit "3"
-    fi
-
-    if explorer.exe "$file"; then
-      exit "0"
-    else
-      exit "4"
-    fi
   fi
 
   mime="$(file --brief --dereference --mime-type "$file" 2> "/dev/null")"
