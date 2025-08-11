@@ -109,10 +109,10 @@ if [ -z "${1:-""}" ] || [ "$#" -gt "1" ]; then
 fi
 
 # XDG directories
-xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
-xdg_config_dirs="${XDG_CONFIG_DIRS:-/etc/xdg}"
-xdg_user_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
-xdg_system_dirs="${XDG_DATA_DIRS:-/usr/local/share/:/usr/share/}"
+xdg_config_home="${XDG_CONFIG_HOME:-"${HOME}/.config"}"
+xdg_config_dirs="${XDG_CONFIG_DIRS:-"/etc/xdg"}"
+xdg_user_dir="${XDG_DATA_HOME:-"${HOME}/.local/share"}"
+xdg_system_dirs="${XDG_DATA_DIRS:-"/usr/local/share/:/usr/share/"}"
 
 # The first_word, except_first_word functions handle backslashes, but not quote marks.
 
@@ -146,58 +146,6 @@ ini_get_val() {
     esac
   done < "$file"
   IFS="$IFS_"
-}
-
-open_with_desktop_file() {
-  fp_desktop="${1:-""}"
-
-  if [ ! -r "$fp_desktop" ]; then
-    return "0"
-  fi
-
-  val_exec="$(ini_get_val "$fp_desktop" "Exec" "Desktop Entry")"
-  command="$(echo "$val_exec" | first_word)"
-
-  if ! command -v "$command" > "/dev/null"; then
-    return "0"
-  fi
-
-  # shellcheck disable=SC2046
-  set -- $(echo "$val_exec" | except_first_word)
-
-  args_count="$#" replaced="0"
-  while [ "$args_count" -gt "0" ]; do
-    case "$1" in
-      %[Uu])
-        replaced="1" arg="${target_uri:-$target_fp}"
-        shift
-        set -- "$@" "$arg"
-      ;;
-      %[Ff])
-        if [ -z "$target_fp" ]; then
-          return "0"
-        fi
-
-        replaced="1" arg="$target_fp"
-        shift
-        set -- "$@" "$arg"
-      ;;
-      *)
-        arg="$1"
-        shift
-        set -- "$@" "$arg"
-      ;;
-    esac
-    args_count="$((args_count - 1))"
-  done
-
-  if [ "$replaced" = "0" ]; then
-    set -- "$@" "${target_fp:-$target_uri}"
-  fi
-
-  set +e; env "$command" "$@"; set -e
-
-  exit "0"
 }
 
 # $1: Target file path, $2: Target file URI, $3: mimeapps.list dir, $4: MIME type, $5: Desktop file IDs
@@ -239,13 +187,65 @@ open() {
         continue
       fi
 
-      app="${id#*-}"
+      fp_desktop_with_vendor="" app="${id#*-}"
+
       if [ "$id" != "$app" ]; then
         vendor="${id%-*}"
-        open_with_desktop_file "${d}/applications/${vendor}/${app}"
+
+        if [ "$vendor" ]; then
+          fp_desktop_with_vendor="${d}/applications/${vendor}/${app}"
+        fi
       fi
 
-      open_with_desktop_file "${d}/applications/${id}"
+      for fp_desktop in "$fp_desktop_with_vendor" "${d}/applications/${id}"; do
+        if [ -z "$fp_desktop" ] || [ ! -r "$fp_desktop" ]; then
+          continue
+        fi
+
+        val_exec="$(ini_get_val "$fp_desktop" "Exec" "Desktop Entry")"
+        command="$(echo "$val_exec" | first_word)"
+
+        if ! command -v "$command" > "/dev/null"; then
+          continue
+        fi
+
+        # shellcheck disable=SC2046
+        set -- $(echo "$val_exec" | except_first_word)
+
+        args_count="$#" replaced="0"
+        while [ "$args_count" -gt "0" ]; do
+          case "$1" in
+            %[Uu])
+              replaced="1" arg="${target_uri:-"$target_fp"}"
+              shift
+              set -- "$@" "$arg"
+            ;;
+            %[Ff])
+              if [ -z "$target_fp" ]; then
+                return "0"
+              fi
+
+              replaced="1" arg="$target_fp"
+              shift
+              set -- "$@" "$arg"
+            ;;
+            *)
+              arg="$1"
+              shift
+              set -- "$@" "$arg"
+            ;;
+          esac
+          args_count="$((args_count - 1))"
+        done
+
+        if [ "$replaced" = "0" ]; then
+          set -- "$@" "${target_fp:-"$target_uri"}"
+        fi
+
+        set +e; env "$command" "$@"; set -e
+
+        exit "0"
+      done
     done
   done
 }
