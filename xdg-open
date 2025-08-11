@@ -212,20 +212,21 @@ open() {
         # shellcheck disable=SC2046
         set -- $(echo "$val_exec" | except_first_word)
 
-        args_count="$#" replaced="0"
+        args_count="$#" arg_replaced="0" arg_incompatible="0"
         while [ "$args_count" -gt "0" ]; do
           case "$1" in
             %[Uu])
-              replaced="1" arg="${target_uri:-"$target_fp"}"
+              arg_replaced="1" arg="${target_uri:-"$target_fp"}"
               shift
               set -- "$@" "$arg"
             ;;
             %[Ff])
               if [ -z "$target_fp" ]; then
-                return "0"
+                arg_incompatible="1"
+                break
               fi
 
-              replaced="1" arg="$target_fp"
+              arg_replaced="1" arg="$target_fp"
               shift
               set -- "$@" "$arg"
             ;;
@@ -238,7 +239,11 @@ open() {
           args_count="$((args_count - 1))"
         done
 
-        if [ "$replaced" = "0" ]; then
+        if [ "$arg_incompatible" = "1" ]; then
+          continue
+        fi
+
+        if [ "$arg_replaced" = "0" ]; then
           set -- "$@" "${target_fp:-"$target_uri"}"
         fi
 
