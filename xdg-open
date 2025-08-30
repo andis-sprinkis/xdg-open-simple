@@ -168,7 +168,7 @@ open() {
 
   prev_ids="${prev_ids:-""}"
 
-  IFS=\;
+  IFS=";"
   for id in $ids; do
     IFS="$IFS_"
 
@@ -179,7 +179,7 @@ open() {
     prev_ids="${prev_ids}${prev_ids:+
 }${id}"
 
-    IFS=:
+    IFS=":"
     for d in $xdg_user_dir $xdg_system_dirs; do
       IFS="$IFS_"
 
@@ -344,21 +344,21 @@ case "$mime" in
   ;;
 esac
 
-IFS=:
+IFS=":"
 for dir in $xdg_config_home $xdg_config_dirs; do
   IFS="$IFS_"
 
   open "$file" "$url" "$dir" "$mime" ""
 done
 
-IFS=:
+IFS=":"
 for dir in $xdg_system_dirs; do
   IFS="$IFS_"
 
   open "$file" "$url" "${dir}/applications" "$mime" ""
 done
 
-IFS=:
+IFS=":"
 for dir in $xdg_user_dir $xdg_system_dirs; do
   IFS="$IFS_"
 
