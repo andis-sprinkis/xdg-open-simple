@@ -4,7 +4,7 @@
 
 ## Properties of this fork
 
-- **Not** an attempt to reinvent how `xdg-open` is meant to work.
+- **Not** an attempt to reinvent what the `xdg-open` is meant to be.
 
     Adheres to the same XDG specifications as the original `xdg-open`: ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/), ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
 
