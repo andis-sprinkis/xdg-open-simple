@@ -6,7 +6,7 @@
 
 - **Not** an attempt to reinvent how `xdg-open` is meant to work.
 
-    Adheres to the same XDG specifications as the original: ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/), ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
+    Adheres to the same XDG specifications as the original `xdg-open`: ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/), ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
 
 - **Some of the original `xdg-open` features and behaviors have been REMOVED:**
 
