@@ -47,7 +47,7 @@
 ## Resources
 
 - [xdg / xdg-utils · GitLab](https://gitlab.freedesktop.org/xdg/xdg-utils)
+- [xdg-utils on freedesktop.org](https://www.freedesktop.org/wiki/Software/xdg-utils/)
 - [Association between MIME types and applications](https://specifications.freedesktop.org/mime-apps-spec/latest/)
 - [Desktop Entry Specification](https://specifications.freedesktop.org/desktop-entry-spec/latest/)
 - [xdg-utils - ArchWiki](https://wiki.archlinux.org/title/Xdg-utils)
-- [xdg-utils on freedesktop.org](https://www.freedesktop.org/wiki/Software/xdg-utils/)
