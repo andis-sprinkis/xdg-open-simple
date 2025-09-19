@@ -8,7 +8,7 @@
 
     Adheres to the same XDG specifications as the original `xdg-open`: ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/), ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
 
-- **Some of the original `xdg-open` features and behaviors have been REMOVED:**
+- **Some of the original `xdg-open` functionality has been REMOVED:**
 
     - Auto-forwarding target paths without a known MIME handler to a web browser. (Not in specifications.)
 
