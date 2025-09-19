@@ -1,6 +1,6 @@
 # xdg-open-simple
 
-`xdg-open-simple` is a minimal fork of the `xdg-open` (the default utility of opening files and URLs on many Linux & Unix-like desktop operating systems).
+`xdg-open-simple` is a minimal fork of the `xdg-open`, which is the default utility of opening files and URLs with the right application on many Linux & Unix-like operating systems.
 
 ## Properties of this fork
 
@@ -8,7 +8,7 @@
 
     Adheres to the same XDG specifications as the original: ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/), ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
 
-- **Some of the `xdg-open` features and behaviors have been REMOVED:**
+- **Some of the original `xdg-open` features and behaviors have been REMOVED:**
 
     - Auto-forwarding target paths without a known MIME handler to a web browser. (Not in specifications.)
 
