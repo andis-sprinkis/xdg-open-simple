@@ -44,23 +44,6 @@
 - Support of the relative target file paths and URLs has been added.
 - From `xdg-utils` system package substitutes only the `xdg-open`, not it's other tools. Retains the original applicable `xdg-open` exit codes.
 
-## Installation
-
-Add this line to some shell initialization script (e.g. `$HOME/.profile` for Bash, `$HOME/.zshenv` for ZSH):
-
-```sh
-PATH="$HOME/.local/bin:$PATH"
-```
-
-Run:
-
-```sh
-mkdir -p "$HOME/.local/opt/" "$HOME/.local/bin"
-git clone "https://github.com/andis-sprinkis/xdg-open-simple/" "$HOME/.local/opt/xdg-open-simple"
-cd "$HOME/.local/bin"
-ln -s "../opt/xdg-open-simple/xdg-open" "xdg-open"
-```
-
 ## Resources
 
 - [xdg / xdg-utils · GitLab](https://gitlab.freedesktop.org/xdg/xdg-utils)
