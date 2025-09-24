@@ -3,7 +3,7 @@ set -eu
 
 #   xdg-open-simple xdg-open
 #
-#   Utility script to open a file or URI in the user's preferred application.
+#   Utility script to open a file or URL in the user's preferred application.
 #
 #   A fork of the original xdg-open (and xdg-mime) script from the xdg-utils v1.2.1.
 #
@@ -46,16 +46,16 @@ set -eu
 script="$(basename "$0")"
 
 help_info="NAME
-    ${script} - opens a file or URI in the registered default application.
+    ${script} - opens a file or URL in the registered default application.
 
 SYNOPSIS
-    ${script} { file | URI } [-h]
+    ${script} { file | URL } [-h]
 
 DESCRIPTION
-    Utility script to open a file or URI in the registered default application.
+    Utility script to open a file or URL in the registered default application.
 
-    { file | URI }
-        The absolute path of the file, or the URI to open.
+    { file | URL }
+        The absolute path of the file, or the URL to open.
 
     -h
         Prints this message.
@@ -148,9 +148,9 @@ ini_get_val() {
   IFS="$IFS_"
 }
 
-# $1: Target file path, $2: Target file URI, $3: mimeapps.list dir, $4: MIME type, $5: Desktop file IDs
+# $1: Target file path, $2: Target URL, $3: mimeapps.list dir, $4: MIME type, $5: Desktop file IDs
 open() {
-  target_fp="${1:-""}" target_uri="${2:-""}" dir="${3:-""}" mime="${4:-""}" ids="${5:-""}"
+  target_fp="${1:-""}" target_url="${2:-""}" dir="${3:-""}" mime="${4:-""}" ids="${5:-""}"
 
   if [ "$dir" ]; then
     fp_mimeapps="${dir}/mimeapps.list"
@@ -216,7 +216,7 @@ open() {
         while [ "$args_count" -gt "0" ]; do
           case "$1" in
             %[Uu])
-              arg_replaced="1" arg="${target_uri:-"$target_fp"}"
+              arg_replaced="1" arg="${target_url:-"$target_fp"}"
               shift
               set -- "$@" "$arg"
             ;;
@@ -244,7 +244,7 @@ open() {
         fi
 
         if [ "$arg_replaced" = "0" ]; then
-          set -- "$@" "${target_fp:-"$target_uri"}"
+          set -- "$@" "${target_fp:-"$target_url"}"
         fi
 
         set +e; env "$command" "$@"; set -e
