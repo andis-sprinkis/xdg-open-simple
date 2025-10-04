@@ -1,10 +1,10 @@
 # xdg-open-simple
 
-`xdg-open-simple` is a more minimal variant of the `xdg-open`.
+`xdg-open-simple` is a more minimal variant of `xdg-open`.
 
 ## Properties of this fork
 
-- **Not** an attempt to reinvent the `xdg-open`.
+- **Not** an attempt to reinvent `xdg-open`.
 
     Adheres to the same XDG specifications as the original `xdg-open`: ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/), ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
 
