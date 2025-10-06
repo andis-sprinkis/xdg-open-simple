@@ -1,6 +1,6 @@
 # xdg-open-simple
 
-`xdg-open-simple` is a more minimal variant of `xdg-open`.
+A more minimal variant of `xdg-open`.
 
 ## Properties of this fork
 
