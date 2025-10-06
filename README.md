@@ -2,7 +2,7 @@
 
 A more minimal variant of `xdg-open`.
 
-## Properties of this fork
+## Characteristics
 
 - **Not** an attempt to reinvent `xdg-open`.
 
