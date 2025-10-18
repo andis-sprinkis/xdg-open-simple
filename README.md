@@ -28,8 +28,8 @@ A more minimal variant of `xdg-open`.
     - The desktop environment specific integrations:
 
         1. Auto-forwarding target paths to desktop environment specific file openers. (Not in specifications)
-        1. Use of the `<desktop environment name>-mimeapps.list` file. (In specifications)
-        1. Use of the `<desktop environment name>-mimeinfo.cache` file. (Not in specifications)
+        1. Use of the file `<desktop environment name>-mimeapps.list`. (In specifications)
+        1. Use of the file `<desktop environment name>-mimeinfo.cache`. (Not in specifications)
 
         Reasons:
 
