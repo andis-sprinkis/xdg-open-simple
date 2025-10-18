@@ -32,7 +32,7 @@ A more minimal variant of `xdg-open`.
 
         Reasons:
 
-        1. Temporal work-arounds and data mappings are needed to identify the desktop environments, due to the lack of desktop environment vendor adherence to, or the lack of the definition in the XDG specifications.
+        1. Version-specific work-arounds and data mappings are needed to identify the desktop environments, due to the lack of desktop environment vendor adherence to, or the lack of the definition in the XDG specifications.
         1. Not required for providing the core functionality of this tool.
 
     - Substituting `Name` (`%c`) and `Icon` (`%i`) field codes within the `Exec` key to pass program icon identifiers and localized program names to the applications. (In specifications.)
