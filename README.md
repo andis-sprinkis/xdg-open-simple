@@ -4,9 +4,9 @@ A more minimal variant of `xdg-open`.
 
 ## Characteristics
 
-- **Not** an attempt to reinvent `xdg-open`.
-
-    Adheres to the same XDG specifications as the original `xdg-open`: ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/), ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
+- Adheres to the same XDG specifications as the original `xdg-open`
+  - ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/)
+  - ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
 
 - **Some of the original `xdg-open` functionality has been REMOVED:**
 
@@ -41,8 +41,9 @@ A more minimal variant of `xdg-open`.
 
         1. Unlikely to be in use anymore. Out of the 100 Desktop files on my Linux system, none use these field codes.
 
-- Support of the relative target file paths and URLs has been added.
-- From `xdg-utils` system package substitutes only the `xdg-open`, not the other tools. Retains the original `xdg-open` exit codes.
+- Support for the relative target file paths and URLs has been added.
+- From `xdg-utils` substitutes only the `xdg-open`, not the other tools.
+- Retains the original `xdg-open` exit codes.
 
 ## Resources
 
