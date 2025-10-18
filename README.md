@@ -35,14 +35,16 @@ A more minimal variant of `xdg-open`.
 
         1. Lack of a robust identification of the desktop environments and their the default opener commands.
 
-           This has required adding lots of work-arounds in the original `xdg-open`.
-        1. Not required for providing the core functionality of this tool.
+           These features have required adding lots of work-arounds in the original `xdg-open`.
+        1. Not required for the core functionality of this tool.
 
     - Substituting `Name` (`%c`) and `Icon` (`%i`) field codes within the `Exec` key to pass program icon identifiers and localized program names to the applications. (In specifications)
 
         Reason:
 
-        1. Unlikely to be in use. Out of more than 100 Desktop files on my Linux system, none use these field codes.
+        1. Unlikely to be in use.
+
+           Out of more than 100 Desktop files on my Linux system, none use these field codes.
 
 - Support for the relative target file paths and URLs has been added.
 - From `xdg-utils` substitutes only the `xdg-open`, not the other tools.
