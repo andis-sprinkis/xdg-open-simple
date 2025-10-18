@@ -42,9 +42,7 @@ A more minimal variant of `xdg-open`.
 
         Reason:
 
-        1. Unlikely to be in use.
-
-           Out of more than 100 Desktop files on my Linux system, none use these field codes.
+        1. Unlikely to be in use - out of more than 100 Desktop files on my Linux system, none use these field codes.
 
 - Support for the relative target file paths and URLs has been added.
 - From `xdg-utils` substitutes only the `xdg-open`, not the other tools.
