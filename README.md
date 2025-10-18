@@ -15,7 +15,7 @@ A more minimal variant of `xdg-open`.
         Reasons:
 
         1. Obfuscates that there is a missing MIME handler on the system.
-        1. If the web browser can't render the target file, results in creating a needless copy of it in the browser downloads directory.
+        1. Unexpected and needless behavior - the web browser creating a copy of the target file in the downloads directory.
 
     - Handling the `$BROWSER` variable. (Not in specifications)
 
