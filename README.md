@@ -5,8 +5,9 @@ A more minimal variant of `xdg-open`.
 ## Characteristics
 
 - Adheres to the same XDG specifications as the original `xdg-open`
-  - ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/)
-  - ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
+
+    - ["Desktop Entry Specification"](https://specifications.freedesktop.org/desktop-entry-spec/latest/)
+    - ["Association between MIME types and applications"](https://specifications.freedesktop.org/mime-apps-spec/latest/).
 
 - Support for the relative target file paths and URLs has been added.
 - Retains the original `xdg-open` exit codes.
@@ -38,7 +39,8 @@ A more minimal variant of `xdg-open`.
 
         1. Lack of a robust identification of the desktop environments and their the default opener commands.
 
-           These features have required adding lots of work-arounds in the original `xdg-open`.
+            These features have required adding lots of work-arounds in the original `xdg-open`.
+
         1. Not required for the core functionality of this tool.
 
     - Substituting `Name` (`%c`) and `Icon` (`%i`) field codes within the `Exec` key to pass program icon identifiers and localized program names to the applications. (In specifications)
