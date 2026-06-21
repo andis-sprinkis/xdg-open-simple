@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-set -eu
+set -euf
 
 #   xdg-open-simple xdg-open
 #
