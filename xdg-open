@@ -1,4 +1,9 @@
 #!/usr/bin/env sh
+set -euf
+IFS_="$IFS"
+NL="
+"
+
 #   xdg-open-simple xdg-open
 #
 #   Utility script to open a file or URL in the user's preferred application.
@@ -40,10 +45,6 @@
 #   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 #   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #   OTHER DEALINGS IN THE SOFTWARE.
-set -euf
-IFS_="$IFS"
-NL="
-"
 
 help_info() {
   script="$(basename "$0")"
