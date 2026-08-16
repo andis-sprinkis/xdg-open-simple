@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 set -euf
+NL="
+"
 
 #   xdg-open-simple xdg-open
 #
@@ -43,9 +45,10 @@ set -euf
 #   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #   OTHER DEALINGS IN THE SOFTWARE.
 
-script="$(basename "$0")"
+help_info() {
+  script="$(basename "$0")"
 
-help_info="NAME
+  echo "NAME
     ${script} - opens a file or URL in the registered default application.
 
 SYNOPSIS
@@ -90,22 +93,23 @@ EXAMPLES
     xdg-open \"/tmp/foobar.png\"
         Opens the PNG image file /tmp/foobar.png in the user's default image viewing application.
 "
+}
 
 IFS_="$IFS"
 
 while getopts :h name; do
   case "$name" in
     "h")
-      echo "$help_info"; exit
+      help_info; exit
     ;;
     "?")
-      echo "$help_info" 1>&2; exit "1"
+      help_info 1>&2; exit "1"
     ;;
   esac
 done
 
 if [ -z "${1:-""}" ] || [ "$#" -gt "1" ]; then
-  echo "$help_info" 1>&2; exit "1"
+  help_info 1>&2; exit "1"
 fi
 
 # XDG directories
@@ -176,8 +180,7 @@ open() {
       continue
     fi
 
-    prev_ids="${prev_ids}${prev_ids:+
-}${id}"
+    prev_ids="${prev_ids}${prev_ids:+"$NL"}${id}"
 
     IFS=":"
     for d in $xdg_user_dir $xdg_system_dirs; do
