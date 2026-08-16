@@ -1,8 +1,4 @@
 #!/usr/bin/env sh
-set -euf
-NL="
-"
-
 #   xdg-open-simple xdg-open
 #
 #   Utility script to open a file or URL in the user's preferred application.
@@ -44,6 +40,10 @@ NL="
 #   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 #   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 #   OTHER DEALINGS IN THE SOFTWARE.
+set -euf
+IFS_="$IFS"
+NL="
+"
 
 help_info() {
   script="$(basename "$0")"
@@ -94,8 +94,6 @@ EXAMPLES
         Opens the PNG image file /tmp/foobar.png in the user's default image viewing application.
 "
 }
-
-IFS_="$IFS"
 
 while getopts :h name; do
   case "$name" in
