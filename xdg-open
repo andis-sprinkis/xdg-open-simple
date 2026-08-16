@@ -118,10 +118,8 @@ xdg_user_dir="${XDG_DATA_HOME:-"${HOME}/.local/share"}"
 xdg_system_dirs="${XDG_DATA_DIRS:-"/usr/local/share/:/usr/share/"}"
 
 # The first_word, except_first_word functions handle backslashes, but not quote marks.
-
 # shellcheck disable=SC2162
 first_word() { read first rest; echo "$first"; }
-
 # shellcheck disable=SC2162
 except_first_word() { read first rest; echo "$rest"; }
 
