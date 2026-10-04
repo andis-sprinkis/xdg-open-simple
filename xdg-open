@@ -215,12 +215,12 @@ open() {
         args_count="$#" arg_replaced="0" arg_incompatible="0"
         while [ "$args_count" -gt "0" ]; do
           case "$1" in
-            %[Uu])
+            "%"[Uu])
               arg_replaced="1" arg="${target_url:-"$target_fp"}"
               shift
               set -- "$@" "$arg"
             ;;
-            %[Ff])
+            "%"[Ff])
               if [ -z "$target_fp" ]; then
                 arg_incompatible="1"
                 break
@@ -337,7 +337,7 @@ else
 fi
 
 case "$mime" in
-  */*)
+  *"/"*)
   ;;
   *)
     exit "3"
