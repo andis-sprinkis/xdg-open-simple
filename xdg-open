@@ -140,7 +140,7 @@ ini_get_val() {
       ;;
       "${key}="*)
         if [ "$is_tgt_group" = "1" ]; then
-          echo "${line#*=}"
+          echo "${line#*"="}"
           return "0"
         fi
       ;;
@@ -187,10 +187,10 @@ open() {
         continue
       fi
 
-      fp_desktop_with_vendor="" app="${id#*-}"
+      fp_desktop_with_vendor="" app="${id#*"-"}"
 
       if [ "$id" != "$app" ]; then
-        vendor="${id%-*}"
+        vendor="${id%"-"*}"
 
         if [ "$vendor" ]; then
           fp_desktop_with_vendor="${d}/applications/${vendor}/${app}"
@@ -261,7 +261,7 @@ if [ -f "/proc/version" ] && grep -q "microsoft" "/proc/version"; then
   is_wsl="1"
 fi
 
-if [ "$target" != "${target#file://}" ]; then
+if [ "$target" != "${target#"file://"}" ]; then
   is_file_url="1"
 fi
 
@@ -273,20 +273,20 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
 
   # Convert file URL to a percent-decoded path.
   if [ "$is_file_url" = "1" ]; then
-    file="${file#file://localhost}"
-    file="${file#file://"$(uname -n)"}"
-    file="${file#file://}"
+    file="${file#"file://localhost"}"
+    file="${file#"file://$(uname -n)"}"
+    file="${file#"file://"}"
 
     if [ "$file" ]; then
       file="${file%%#*}"
-      file="${file%%\?*}"
+      file="${file%%"?"*}"
       file="$(echo "$file" | LC_ALL="C" sed -e 's/%\([a-f0-9A-F]\{2\}\)/\\x\1/g')"
       # shellcheck disable=SC2059
       file="$(printf "$file")"
     fi
   fi
 
-  if [ "$file" != "${file#-}" ]; then
+  if [ "$file" != "${file#"-"}" ]; then
     file="./${file}"
   fi
 
@@ -319,7 +319,7 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
   fi
 
   mime="$(file --brief --dereference --mime-type "$file" 2> "/dev/null")"
-  mime="${mime%%;*}"
+  mime="${mime%%";"*}"
 else
   if [ "$is_wsl" = "1" ]; then
     if ! command -v "rundll32.exe" > "/dev/null"; then
