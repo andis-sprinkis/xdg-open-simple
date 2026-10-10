@@ -156,9 +156,7 @@ open() {
   if [ "$dir" ]; then
     fp_mimeapps="${dir}/mimeapps.list"
 
-    if [ ! -f "$fp_mimeapps" ]; then
-      return "0"
-    fi
+    if [ ! -f "$fp_mimeapps" ]; then return "0"; fi
 
     ids="$(ini_get_val "$fp_mimeapps" "$mime" "Default Applications")"
   fi
@@ -173,9 +171,7 @@ open() {
   for id in $ids; do
     IFS="$IFS_"
 
-    if echo "$prev_ids" | grep -xq "$id"; then
-      continue
-    fi
+    if echo "$prev_ids" | grep -xq "$id"; then continue; fi
 
     prev_ids="${prev_ids}${prev_ids:+"$NL"}${id}"
 
@@ -183,31 +179,23 @@ open() {
     for d in $xdg_user_dir $xdg_system_dirs; do
       IFS="$IFS_"
 
-      if [ ! -d "${d}/applications" ]; then
-        continue
-      fi
+      if [ ! -d "${d}/applications" ]; then continue; fi
 
       fp_desktop_with_vendor="" app="${id#*"-"}"
 
       if [ "$id" != "$app" ]; then
         vendor="${id%"-"*}"
 
-        if [ "$vendor" ]; then
-          fp_desktop_with_vendor="${d}/applications/${vendor}/${app}"
-        fi
+        if [ "$vendor" ]; then fp_desktop_with_vendor="${d}/applications/${vendor}/${app}"; fi
       fi
 
       for fp_desktop in "$fp_desktop_with_vendor" "${d}/applications/${id}"; do
-        if [ -z "$fp_desktop" ] || [ ! -r "$fp_desktop" ]; then
-          continue
-        fi
+        if [ -z "$fp_desktop" ] || [ ! -r "$fp_desktop" ]; then continue; fi
 
         val_exec="$(ini_get_val "$fp_desktop" "Exec" "Desktop Entry")"
         command="$(echo "$val_exec" | first_word)"
 
-        if ! command -v "$command" > "/dev/null"; then
-          continue
-        fi
+        if ! command -v "$command" > "/dev/null"; then continue; fi
 
         # shellcheck disable=SC2046
         set -- $(echo "$val_exec" | except_first_word)
@@ -239,13 +227,9 @@ open() {
           args_count="$((args_count - 1))"
         done
 
-        if [ "$arg_incompatible" = "1" ]; then
-          continue
-        fi
+        if [ "$arg_incompatible" = "1" ]; then continue; fi
 
-        if [ "$arg_replaced" = "0" ]; then
-          set -- "$@" "${target_fp:-"$target_url"}"
-        fi
+        if [ "$arg_replaced" = "0" ]; then set -- "$@" "${target_fp:-"$target_url"}"; fi
 
         set +e; env "$command" "$@"; set -e
 
@@ -257,13 +241,9 @@ open() {
 
 target="$1" is_file_url="0" file="" mime="" is_wsl="0"
 
-if [ -f "/proc/version" ] && grep -q "microsoft" "/proc/version"; then
-  is_wsl="1"
-fi
+if [ -f "/proc/version" ] && grep -q "microsoft" "/proc/version"; then is_wsl="1"; fi
 
-if [ "$target" != "${target#"file://"}" ]; then
-  is_file_url="1"
-fi
+if [ "$target" != "${target#"file://"}" ]; then is_file_url="1"; fi
 
 scheme="$(echo "$target" | LC_ALL="C" sed -n 's/\(^[[:alpha:]][[:alnum:]+\.-]*\):.*$/\1/p')"
 url="${scheme:+"$target"}"
@@ -286,49 +266,33 @@ if [ "$is_file_url" = "1" ] || [ -z "$scheme" ]; then
     fi
   fi
 
-  if [ "$file" != "${file#"-"}" ]; then
-    file="./${file}"
-  fi
+  if [ "$file" != "${file#"-"}" ]; then file="./${file}"; fi
 
   if [ "$is_wsl" = "1" ]; then
     file="$(wslpath -aw "$file")"
 
-    if [ ! "$file" ]; then
-      exit "2"
-    fi
+    if [ ! "$file" ]; then exit "2"; fi
 
-    if ! command -v "explorer.exe" > "/dev/null"; then
-      exit "3"
-    fi
+    if ! command -v "explorer.exe" > "/dev/null"; then exit "3"; fi
 
-    if explorer.exe "$file"; then
-      exit "0"
-    fi
+    if explorer.exe "$file"; then exit "0"; fi
 
     exit "4"
   fi
 
   file="$(readlink -f "$file")"
 
-  if [ ! -e "$file" ]; then
-    exit "2"
-  fi
+  if [ ! -e "$file" ]; then exit "2"; fi
 
-  if [ ! -r "$file" ]; then
-    exit "5"
-  fi
+  if [ ! -r "$file" ]; then exit "5"; fi
 
   mime="$(file --brief --dereference --mime-type "$file" 2> "/dev/null")"
   mime="${mime%%";"*}"
 else
   if [ "$is_wsl" = "1" ]; then
-    if ! command -v "rundll32.exe" > "/dev/null"; then
-      exit "3"
-    fi
+    if ! command -v "rundll32.exe" > "/dev/null"; then exit "3"; fi
 
-    if rundll32.exe "url.dll,FileProtocolHandler" "$target"; then
-      exit "0"
-    fi
+    if rundll32.exe "url.dll,FileProtocolHandler" "$target"; then exit "0"; fi
 
     exit "4"
   fi
