@@ -161,9 +161,7 @@ open() {
     ids="$(ini_get_val "$fp_mimeapps" "$mime" "Default Applications")"
   fi
 
-  if [ -z "$ids" ]; then
-    return "0"
-  fi
+  if [ -z "$ids" ]; then return "0"; fi
 
   prev_ids="${prev_ids:-""}"
 
